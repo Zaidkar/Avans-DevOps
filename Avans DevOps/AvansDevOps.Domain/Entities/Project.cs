@@ -8,9 +8,11 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
     public class Project
     {
-        public string name { get; set; }
-        public List<Project> projects { get; set;
-        public List<Sprint> sprints { get; set; };
+        public string Name { get; set; }
+        public List<Project> Projects { get; set; } 
+        public List<Sprint> Sprints { get; set; }
+        public User ProductOwner { get; set; }
+
 
 
 

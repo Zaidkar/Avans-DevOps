@@ -9,8 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AvansDevOps.Tests\**" />
+    <EmbeddedResource Remove="AvansDevOps.Tests\**" />
+    <None Remove="AvansDevOps.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="AvansDevOps.Infrastructure\" />
-    <Folder Include="AvansDevOps.Tests\" />
     <Folder Include="AvansDevOps.Service\" />
   </ItemGroup>
 
