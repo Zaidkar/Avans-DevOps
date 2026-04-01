@@ -9,7 +9,8 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 {
     public abstract class SprintState
     {
-        public abstract void Start(Sprint sprint);
-        public abstract void Complete(Sprint sprint);
+        public abstract void start(Sprint sprint);
+        public abstract void finish(Sprint sprint);
+        public abstract void release(Sprint sprint);
     }
 }
