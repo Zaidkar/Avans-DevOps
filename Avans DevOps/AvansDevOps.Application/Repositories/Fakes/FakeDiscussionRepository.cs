@@ -1,0 +1,43 @@
+using Avans_DevOps.AvansDevOps.Domain.Entities;
+
+namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
+{
+    internal class FakeDiscussionRepository : IDiscussionRepository
+    {
+        private readonly Dictionary<int, DiscussionThread> _threads = [];
+        private int _nextId = 1;
+
+        public List<(int Id, DiscussionThread Thread)> GetAll()
+        {
+            return _threads.Select(pair => (pair.Key, pair.Value)).ToList();
+        }
+
+        public DiscussionThread? GetById(int id)
+        {
+            return _threads.TryGetValue(id, out var thread) ? thread : null;
+        }
+
+        public int Create(DiscussionThread thread)
+        {
+            var id = _nextId++;
+            _threads[id] = thread;
+            return id;
+        }
+
+        public bool Update(int id, DiscussionThread thread)
+        {
+            if (!_threads.ContainsKey(id))
+            {
+                return false;
+            }
+
+            _threads[id] = thread;
+            return true;
+        }
+
+        public bool Delete(int id)
+        {
+            return _threads.Remove(id);
+        }
+    }
+}
