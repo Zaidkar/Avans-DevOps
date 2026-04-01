@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
-    internal class Sprint
+    internal class DiscussionThread
     {
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Enum
 {
-    enum UserRole
+    public enum UserRole
     {
         Developer,
         LeadDeveloper,
