@@ -57,7 +57,7 @@ jobs:
           & "$scanner\dotnet-sonarscanner" begin `
             /k:"Zaidkar_Avans-DevOps" `
             /o:"zaidkar" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.token="$env:SONAR_TOKEN" `
             /d:sonar.cs.vscoveragexml.reportsPaths="$coveragePath"
 
           dotnet build --no-incremental
@@ -65,4 +65,4 @@ jobs:
           & "$scanner\dotnet-coverage" collect "dotnet test --no-build" -f xml -o "$coveragePath"
 
           & "$scanner\dotnet-sonarscanner" end `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+            /d:sonar.token="$env:SONAR_TOKEN"
