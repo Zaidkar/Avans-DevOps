@@ -10,5 +10,10 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         {
             backlogItem.SetTestingState();
         }
+
+        public override void ReturnToTodo(BacklogItem backlogItem)
+        {
+            backlogItem.SetTodoState();
+        }
     }
 }

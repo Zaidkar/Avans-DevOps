@@ -82,6 +82,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void AssignDeveloperInternal(User developer)
         {
             AssignedDeveloper = developer ?? throw new ArgumentNullException(nameof(developer));
+
         }
 
         internal void UnassignDeveloperInternal()

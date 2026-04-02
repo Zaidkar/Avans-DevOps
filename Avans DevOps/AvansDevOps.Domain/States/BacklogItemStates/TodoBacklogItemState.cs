@@ -25,6 +25,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void AssignDeveloper(BacklogItem backlogItem, User developer)
         {
             backlogItem.AssignDeveloperInternal(developer);
+            backlogItem.SetDoingState();
         }
 
         public override void UnassignDeveloper(BacklogItem backlogItem)
