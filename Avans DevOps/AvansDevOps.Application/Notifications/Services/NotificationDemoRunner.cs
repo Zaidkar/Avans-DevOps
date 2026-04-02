@@ -3,6 +3,8 @@ using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Observers;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Publishers;
 using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
+using Avans_DevOps.AvansDevOps.Application.Reports.Exporters;
+using Avans_DevOps.AvansDevOps.Application.Reports.Services;
 using Avans_DevOps.AvansDevOps.Application.Services;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
@@ -73,6 +75,25 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             backlogItemService.StartTesting(backlogItemId);
             backlogItemService.MarkTested(backlogItemId);
             backlogItemService.ApproveDone(backlogItemId);
+
+            var reportGenerator = new ReportGenerator(sprintRepository, backlogRepository);
+            var reportContent = reportGenerator.Generate(
+                sprint.Id,
+                "Avans_Coen",
+                "Avans DevOps",
+                "v1.0",
+                "[AVANS LOGO]",
+                sprint.Name,
+                "Demo rapportage");
+
+            var outputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "reports");
+
+            var pdfResult = ReportExporterFactory.Create(ReportFormat.Pdf).Export(reportContent, sprint.Name, outputDirectory);
+
+            var pngResult = ReportExporterFactory.Create(ReportFormat.Png).Export(reportContent, sprint.Name, outputDirectory);
+
+            Console.WriteLine($"[Reporting] PDF: {pdfResult}");
+            Console.WriteLine($"[Reporting] PNG: {pngResult}");
 
 
             // var discussion = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint retrospective");

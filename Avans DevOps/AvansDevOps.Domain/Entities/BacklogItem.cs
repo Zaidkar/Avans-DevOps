@@ -1,4 +1,4 @@
-﻿using Avans_DevOps.AvansDevOps.Domain.Interfaces;
+using Avans_DevOps.AvansDevOps.Domain.Interfaces;
 using Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates;
 using Avans_DevOps.AvansDevOps.Domain.Visitors;
 using System;
@@ -18,6 +18,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public string Description { get; private set; }
         public int StoryPoints { get; private set; }
         public User? AssignedDeveloper { get; private set; }
+        public User? LastDeveloper { get; private set; }
 
         public IReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
         public IReadOnlyCollection<IBacklogWorkItemComponent> Children => _activities.AsReadOnly();
@@ -99,6 +100,8 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void AssignDeveloperInternal(User developer)
         {
             AssignedDeveloper = developer ?? throw new ArgumentNullException(nameof(developer));
+            LastDeveloper = developer;
+
         }
 
         internal void UnassignDeveloperInternal()
