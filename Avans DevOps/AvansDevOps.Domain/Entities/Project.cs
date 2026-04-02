@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
@@ -70,6 +68,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             if (backlogItem is null)
                 throw new InvalidOperationException("Backlog item not found in this project.");
 
+            if (backlogItem.IsDone())
+                throw new InvalidOperationException("Backlog item is done and cannot be removed.");
+
             _productBacklog.Remove(backlogItem);
         }
 
@@ -108,6 +109,5 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             _sprints.Remove(sprint);
         }
     }
-
 }
 

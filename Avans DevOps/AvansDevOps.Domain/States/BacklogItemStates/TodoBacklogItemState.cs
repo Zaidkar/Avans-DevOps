@@ -43,6 +43,16 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
             backlogItem.RemoveActivityInternal(activityId);
         }
 
+        public override void AssignToSprint(BacklogItem backlogItem, Guid sprintId)
+        {
+            backlogItem.AssignToSprintInternal(sprintId);
+        }
+
+        public override void RemoveFromSprint(BacklogItem backlogItem)
+        {
+            backlogItem.RemoveFromSprintInternal();
+        }
+
         public override void StartWork(BacklogItem backlogItem)
         {
             if (!backlogItem.HasAssignedDeveloper())
