@@ -1,13 +1,13 @@
-﻿using Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates;
+﻿using Avans_DevOps.AvansDevOps.Domain.Interfaces;
+using Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates;
+using Avans_DevOps.AvansDevOps.Domain.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
-    public class BacklogItem
+    public class BacklogItem : IBacklogWorkItemComponent
     {
         private readonly List<Activity> _activities = new();
         private BacklogItemState _state;
@@ -19,6 +19,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public User? AssignedDeveloper { get; private set; }
 
         public IReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
+        public IReadOnlyCollection<IBacklogWorkItemComponent> Children => _activities.AsReadOnly();
         public string CurrentState => _state.Name;
 
         public BacklogItem(Guid id, string title, string description, int storyPoints)
@@ -58,6 +59,21 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public void ReturnToTodo() => _state.ReturnToTodo(this);
         public void ReturnToReadyForTesting() => _state.ReturnToReadyForTesting(this);
 
+        public bool IsDone()
+        {
+            return _state is DoneBacklogItemState;
+        }
+
+        public void Accept(IBacklogWorkItemVisitor visitor)
+        {
+            visitor.VisitBacklogItem(this);
+
+            foreach (var activity in _activities)
+            {
+                activity.Accept(visitor);
+            }
+        }
+
         internal void ChangeTitleInternal(string title)
         {
             if (string.IsNullOrWhiteSpace(title))
@@ -82,7 +98,6 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void AssignDeveloperInternal(User developer)
         {
             AssignedDeveloper = developer ?? throw new ArgumentNullException(nameof(developer));
-
         }
 
         internal void UnassignDeveloperInternal()
@@ -111,7 +126,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         internal bool AllActivitiesDone()
         {
-            return _activities.All(activity => activity.IsDone());
+            var visitor = new AllActivitiesDoneVisitor();
+            Accept(visitor);
+            return visitor.AllActivitiesDone;
         }
 
         internal void SetTodoState()
