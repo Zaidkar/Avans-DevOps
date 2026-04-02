@@ -14,6 +14,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void ReturnToTodo(BacklogItem backlogItem)
         {
             backlogItem.SetTodoState();
+            backlogItem.UnassignDeveloperInternal();
         }
 
     }

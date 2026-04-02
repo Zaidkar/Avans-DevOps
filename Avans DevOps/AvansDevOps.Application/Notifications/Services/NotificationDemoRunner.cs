@@ -49,7 +49,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             var discussionRepository = new FakeDiscussionRepository();
 
             var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler);
-            var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler);
+            var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler, userRepository);
             var discussionService = new DiscussionService(discussionRepository, userRepository, discussionHandler);
 
            var sprint = sprintService.Create(new Sprint(Guid.NewGuid(), "Sprint 1",DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)), SprintGoalType.Review));
@@ -57,12 +57,24 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             var backlogItemId = backlogItemService.Create(new BacklogItem(Guid.NewGuid(), "BacklogItem 1", "Demo item", 3));
             sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().First().Id, SprintRole.Developer);
             sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(1).Id, SprintRole.Tester);
-            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(2).Id, SprintRole.ProductOwner);
+            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(2).Id, SprintRole.ScrumMaster);
             sprintService.AddBacklogItem(sprint.Id, backlogItemId);
             Console.WriteLine($"{string.Join(", ", sprintService.GetAll().Select(s => s.Name))}");
-            backlogItemService.MarkReadyForTesting(backlogItemId);
+            backlogItemService.AssignDeveloper(backlogItemId, userRepository.GetAll().First().Id);
             
-            backlogItemService.MoveBackToTodo(backlogItemId);
+            backlogItemService.MarkReadyForTesting(backlogItemId);
+            backlogItemService.StartTesting(backlogItemId);
+            backlogItemService.MarkTested(backlogItemId);
+            backlogItemService.ReturnToReadyForTesting(backlogItemId);
+            backlogItemService.StartTesting(backlogItemId);
+            backlogItemService.ReturnToTodo(backlogItemId);
+            backlogItemService.AssignDeveloper(backlogItemId, userRepository.GetAll().ElementAt(0).Id);
+            backlogItemService.MarkReadyForTesting(backlogItemId);
+            backlogItemService.StartTesting(backlogItemId);
+            backlogItemService.MarkTested(backlogItemId);
+            backlogItemService.ApproveDone(backlogItemId);
+
+
             // var discussion = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint retrospective");
             // var discussionId = discussionService.Create(discussion);
             // var author = userRepository.GetAll().First();

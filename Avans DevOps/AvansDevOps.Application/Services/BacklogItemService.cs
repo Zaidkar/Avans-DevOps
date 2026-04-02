@@ -5,11 +5,12 @@ using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IBacklogItemNotificationHandler backlogNotificationHandler)
+    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IBacklogItemNotificationHandler backlogNotificationHandler, IUserRepository userRepository)
     {
         private readonly IBacklogItemRepository _backlogItemRepository = backlogItemRepository;
         private readonly ISprintRepository _sprintRepository = sprintRepository;
         private readonly IBacklogItemNotificationHandler _backlogNotificationHandler = backlogNotificationHandler;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public List<(Guid Id, BacklogItem Item)> GetAll()
         {
@@ -121,14 +122,15 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             {
                 return false;
             }
-
+            var sprint = _backlogItemRepository.GetSprintForBacklogItem(id);
+            if (sprint == null)            {
+                return false;
+            }
             backlogItem.ReturnToReadyForTesting();
+            var recipients = _sprintRepository.GetMembersByRole(sprint.Id, SprintRole.Tester);
+            _backlogNotificationHandler.NotifyReadyForTesting(backlogItem.Title, recipients);
             return _backlogItemRepository.Update(id, backlogItem);
-        }
 
-        public bool MoveBackToTodo(Guid id)
-        {
-            return ReturnToTodo(id);
         }
 
         public bool ReturnToTodo(Guid id)
@@ -136,6 +138,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             var backlogItem = _backlogItemRepository.GetById(id);
             if (backlogItem == null)
             {
+                return false;
+            }
+
+            var assignedDeveloper = backlogItem.AssignedDeveloper;
+            if (assignedDeveloper == null)
+            {
+                    Console.WriteLine($"[BacklogItemService] No assigned developer for backlog item {id}");
                 return false;
             }
 
@@ -149,8 +158,23 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             _backlogItemRepository.Update(id, backlogItem);
 
             var recipients = _sprintRepository.GetMembersByRole(sprint.Id, SprintRole.ScrumMaster);
-            _backlogNotificationHandler.NotifyBackToTodo(backlogItem.Title, recipients);
+            _backlogNotificationHandler.NotifyBackToTodo(backlogItem.Title, assignedDeveloper, recipients);
             return true;
+        }
+
+        public bool AssignDeveloper(Guid backlogItemId, Guid userId)
+        {
+            var backlogItem = _backlogItemRepository.GetById(backlogItemId);
+            if (backlogItem == null)            {
+                return false;
+            }
+            var developer = _userRepository.GetById(userId);
+            if (developer == null)
+            {
+                return false;
+            }
+            backlogItem.AssignDeveloper(developer);
+             return _backlogItemRepository.Update(backlogItemId, backlogItem);
         }
     }
 }

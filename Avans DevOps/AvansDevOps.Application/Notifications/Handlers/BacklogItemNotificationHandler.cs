@@ -14,9 +14,9 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Handlers
             Publish("Backlog item ready for testing", $"Backlogitem {backlogItemTitle} is ready for testing", recipients);
         }
 
-        public void NotifyBackToTodo(string backlogItemTitle, List<User> recipients)
+        public void NotifyBackToTodo(string backlogItemTitle, User assignedDeveloper, List<User> recipients)
         {
-            Publish("Backlog item terug naar todo", $"Backlogitem {backlogItemTitle} is teruggezet naar todo", recipients);
+            Publish("Backlog item terug naar todo", $"Backlogitem {backlogItemTitle} developed door {assignedDeveloper.Name} is teruggezet naar todo", recipients);
         }
 
         public void NotifyTestedRejected(string backlogItemTitle, List<User> recipients)

@@ -11,7 +11,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         {
             if (!backlogItem.AllActivitiesDone())
                 throw new InvalidOperationException("A backlog item cannot be marked as done until all underlying activities are done.");
-
+            backlogItem.UnassignDeveloperInternal();
             backlogItem.SetDoneState();
         }
 
@@ -23,6 +23,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void ReturnToTodo(BacklogItem backlogItem)
         {
             backlogItem.SetTodoState();
+            backlogItem.UnassignDeveloperInternal();
         }
     }
 }

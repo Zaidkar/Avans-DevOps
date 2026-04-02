@@ -38,7 +38,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             Description = description ?? string.Empty;
             StoryPoints = storyPoints;
 
-            _state = new DoingBacklogItemState();
+            _state = new TodoBacklogItemState();
         }
 
         public void ChangeTitle(string title) => _state.ChangeTitle(this, title);
