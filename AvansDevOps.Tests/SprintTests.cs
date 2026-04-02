@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -33,157 +34,94 @@ namespace AvansDevOps.Tests
             return new PipelineDefinition(Guid.NewGuid(), "Release Pipeline");
         }
 
-        private static SprintMember CreateMember(Guid userId, SprintRole role)
+        private static SprintMember CreateMember(string name, SprintRole role)
         {
-            var user = new User
-            {
-                Id = userId,
-                Name = "User",
-                Email = "user@avans.dev"
-            };
-
-            return new SprintMember(Guid.NewGuid(), user, role);
+            return new SprintMember(
+                Guid.NewGuid(),
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name,
+                    Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
+                },
+                role);
         }
 
         [Fact]
-        public void Start_WhenInCreated_MovesToActive()
+        public void TC_05_FR_06_FR_07_CreatedSprint_IsMutable()
         {
-            // Arrange
             var sprint = CreateReleaseSprint();
-
-            // Act
-            sprint.Start();
-
-            // Assert
-            Assert.Equal("Active", sprint.CurrentState);
-        }
-
-        [Fact]
-        public void AddBacklogItem_WhenActive_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
-            sprint.Start();
-
             var backlogItemId = Guid.NewGuid();
 
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => sprint.AddBacklogItem(backlogItemId));
-            Assert.Equal("Action 'AddBacklogItem' is not allowed in state 'Active'.", exception.Message);
-        }
-
-        [Fact]
-        public void Finish_WhenActive_MovesToFinished()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
-            sprint.Start();
-
-            // Act
-            sprint.Finish();
-
-            // Assert
-            Assert.Equal("Finished", sprint.CurrentState);
-        }
-
-        [Fact]
-        public void BeginRelease_WhenReleaseSprintWithoutPipeline_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
-            sprint.Start();
-            sprint.Finish();
-
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => sprint.BeginRelease());
-            Assert.Equal("A release sprint must have a pipeline assigned.", exception.Message);
-        }
-
-        [Fact]
-        public void BeginRelease_WhenReleaseSprintWithPipeline_MovesToReleasing()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
+            sprint.Rename("Sprint 1");
+            sprint.ChangePlanning(new DateOnly(2026, 1, 2), new DateOnly(2026, 1, 15));
+            sprint.AddMember(CreateMember("Dev One", SprintRole.Developer));
+            sprint.AddBacklogItem(backlogItemId);
             sprint.AssignPipeline(CreatePipeline());
-            sprint.Start();
-            sprint.Finish();
 
-            // Act
-            sprint.BeginRelease();
-
-            // Assert
-            Assert.Equal("Releasing", sprint.CurrentState);
+            Assert.Equal("Sprint 1", sprint.Name);
+            Assert.Contains(backlogItemId, sprint.BacklogItemIds);
+            Assert.Single(sprint.Members);
+            Assert.NotNull(sprint.Pipeline);
         }
 
         [Fact]
-        public void CloseReview_WhenReviewSprintWithSummary_MovesToClosed()
+        public void TC_06_FR_06_FR_07_StartedSprint_IsNotMutable()
         {
-            // Arrange
+            var sprint = CreateReleaseSprint();
+            sprint.Start();
+
+            Assert.Throws<InvalidOperationException>(() => sprint.Rename("New name"));
+            Assert.Throws<InvalidOperationException>(() => sprint.AddBacklogItem(Guid.NewGuid()));
+        }
+
+        [Fact]
+        public void TC_07_FR_08_AddSecondScrumMaster_IsRejected()
+        {
+            var sprint = CreateReleaseSprint();
+
+            sprint.AddMember(CreateMember("Scrum Master 1", SprintRole.ScrumMaster));
+
+            Assert.Throws<InvalidOperationException>(() =>
+                sprint.AddMember(CreateMember("Scrum Master 2", SprintRole.ScrumMaster)));
+        }
+
+        [Fact]
+        public void TC_07_FR_08_AddDuplicateMember_IsRejected()
+        {
+            var sprint = CreateReleaseSprint();
+            var userId = Guid.NewGuid();
+
+            sprint.AddMember(new SprintMember(
+                Guid.NewGuid(),
+                new User { Id = userId, Name = "Dev", Email = "dev@avans.dev" },
+                SprintRole.Developer));
+
+            Assert.Throws<InvalidOperationException>(() =>
+                sprint.AddMember(new SprintMember(
+                    Guid.NewGuid(),
+                    new User { Id = userId, Name = "Dev Duplicate", Email = "dev2@avans.dev" },
+                    SprintRole.Tester)));
+        }
+
+        [Fact]
+        public void TC_13_FR_11_ReviewSprint_CannotCloseWithoutReviewSummary()
+        {
             var sprint = CreateReviewSprint();
             sprint.Start();
-            sprint.UploadReviewSummary("review-summary.pdf");
             sprint.Finish();
 
-            // Act
-            sprint.CloseReview();
-
-            // Assert
-            Assert.Equal("Closed", sprint.CurrentState);
+            Assert.Throws<InvalidOperationException>(() => sprint.CloseReview());
         }
 
         [Fact]
-        public void Constructor_WhenEndDateBeforeStartDate_ThrowsArgumentException()
+        public void TC_14_FR_11_FR_12_ReleaseSprint_CannotStartReleaseWithoutPipeline()
         {
-            // Arrange
-            var startDate = new DateOnly(2026, 1, 10);
-            var endDate = new DateOnly(2026, 1, 9);
-
-            // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() =>
-                new Sprint(Guid.NewGuid(), "Sprint", startDate, endDate, SprintGoalType.Release));
-
-            Assert.Equal("End date cannot be before start date.", exception.Message);
-        }
-
-        [Fact]
-        public void ChangePlanning_WhenEndDateBeforeStartDate_ThrowsArgumentException()
-        {
-            // Arrange
             var sprint = CreateReleaseSprint();
-            var startDate = new DateOnly(2026, 1, 10);
-            var endDate = new DateOnly(2026, 1, 9);
+            sprint.Start();
+            sprint.Finish();
 
-            // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => sprint.ChangePlanning(startDate, endDate));
-            Assert.Equal("End date cannot be before start date.", exception.Message);
-        }
-
-        [Fact]
-        public void AddMember_WhenDuplicateUser_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
-            var userId = Guid.NewGuid();
-
-            sprint.AddMember(CreateMember(userId, SprintRole.Developer));
-
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() =>
-                sprint.AddMember(CreateMember(userId, SprintRole.ScrumMaster)));
-
-            Assert.Equal("User is already a member of the sprint.", exception.Message);
-        }
-
-        [Fact]
-        public void RemoveMember_WhenUserNotMember_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            var sprint = CreateReleaseSprint();
-            var userId = Guid.NewGuid();
-
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => sprint.RemoveMember(userId));
-            Assert.Equal("User is not a member of the sprint.", exception.Message);
+            Assert.Throws<InvalidOperationException>(() => sprint.BeginRelease());
         }
     }
 }

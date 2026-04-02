@@ -22,14 +22,6 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             sprint.SetReleasingState();
         }
 
-        public override void CancelRelease(Sprint sprint)
-        {
-            if (!sprint.IsReleaseSprint())
-                throw new InvalidOperationException("Only release sprints can cancel a release.");
-
-            sprint.SetReleaseCancelledState();
-        }
-
         public override void CloseReview(Sprint sprint)
         {
             if (!sprint.IsReviewSprint())

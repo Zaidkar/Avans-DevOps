@@ -95,6 +95,10 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             if (_members.Any(m => m.User.Id == member.User.Id))
                 throw new InvalidOperationException("User is already a member of the sprint.");
 
+            if (member.SprintRole == SprintRole.ScrumMaster &&
+                _members.Any(m => m.SprintRole == SprintRole.ScrumMaster))
+                throw new InvalidOperationException("A sprint can only have one scrum master.");
+
             _members.Add(member);
         }
 
