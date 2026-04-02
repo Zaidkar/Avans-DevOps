@@ -1,19 +1,19 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Enum;
+using Avans_DevOps.AvansDevOps.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
-    public class Activity
+    public class Activity : IBacklogWorkItemComponent
     {
         public Guid Id { get; }
         public string Title { get; private set; }
         public string Description { get; private set; }
         public ActivityStatus Status { get; private set; }
         public User? AssignedDeveloper { get; private set; }
+
+        public IReadOnlyCollection<IBacklogWorkItemComponent> Children => Array.Empty<IBacklogWorkItemComponent>();
 
         public Activity(Guid id, string title, string description)
         {
@@ -72,6 +72,10 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
             return Status == ActivityStatus.Done;
         }
-    }
 
+        public void Accept(IBacklogWorkItemVisitor visitor)
+        {
+            visitor.VisitActivity(this);
+        }
+    }
 }
