@@ -1,4 +1,5 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Entities;
+using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +49,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             throw InvalidAction(nameof(RemoveBacklogItem));
         }
 
-        public virtual void AssignPipeline(Sprint sprint, Guid pipelineId)
+        public virtual void AssignPipeline(Sprint sprint, PipelineDefinition pipeline)
         {
             throw InvalidAction(nameof(AssignPipeline));
         }

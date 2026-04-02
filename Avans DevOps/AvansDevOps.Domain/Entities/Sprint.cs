@@ -1,4 +1,5 @@
-﻿using Avans_DevOps.AvansDevOps.Domain.Enum;
+﻿using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
+using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Avans_DevOps.AvansDevOps.Domain.States.SprintStates;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public DateOnly StartDate { get; private set; }
         public DateOnly EndDate { get; private set; }
         public SprintGoalType SprintGoalType { get; }
-        public Guid? PipelineId { get; private set; }
+        public PipelineDefinition? Pipeline { get; private set; }
         public string? ReviewSummaryDocumentPath { get; private set; }
 
         public IReadOnlyCollection<SprintMember> Members => _members.AsReadOnly();
@@ -55,7 +56,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public void RemoveMember(Guid userId) => _state.RemoveMember(this, userId);
         public void AddBacklogItem(Guid backlogItemId) => _state.AddBacklogItem(this, backlogItemId);
         public void RemoveBacklogItem(Guid backlogItemId) => _state.RemoveBacklogItem(this, backlogItemId);
-        public void AssignPipeline(Guid pipelineId) => _state.AssignPipeline(this, pipelineId);
+        public void AssignPipeline(PipelineDefinition pipeline) => _state.AssignPipeline(this, pipeline);
         public void UploadReviewSummary(string documentPath) => _state.UploadReviewSummary(this, documentPath);
 
 
@@ -129,14 +130,6 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
                 throw new InvalidOperationException("Backlog item does not exist in the sprint.");
         }
 
-        internal void SetPipeline(Guid pipelineId)
-        {
-            if (pipelineId == Guid.Empty)
-                throw new ArgumentException("Pipeline id cannot be empty.", nameof(pipelineId));
-
-            PipelineId = pipelineId;
-        }
-
         internal void SetReviewSummaryDocument(string documentPath)
         {
             if (string.IsNullOrWhiteSpace(documentPath))
@@ -148,10 +141,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         internal bool IsReleaseSprint() => SprintGoalType == global::Avans_DevOps.AvansDevOps.Domain.Enum.SprintGoalType.Release;
         internal bool IsReviewSprint() => SprintGoalType == global::Avans_DevOps.AvansDevOps.Domain.Enum.SprintGoalType.Review;
-        internal bool HasPipeline() => PipelineId.HasValue;
+        internal bool HasPipeline() => Pipeline is not null;
+        internal void AssignPipelineInternal(PipelineDefinition pipeline) => Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         internal bool HasReviewSummary() => !string.IsNullOrWhiteSpace(ReviewSummaryDocumentPath);
-
-        
         internal void SetActiveState() => _state = new SprintActiveState();
         internal void SetFinishedState() => _state = new SprintFinishedState();
         internal void SetReleasingState() => _state = new SprintReleasingState();

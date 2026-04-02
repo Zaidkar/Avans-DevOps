@@ -1,4 +1,5 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Entities;
+using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
     {
         public override string Name => "Active";
 
-        public override void AssignPipeline(Sprint sprint, Guid pipelineId)
+        public override void AssignPipeline(Sprint sprint, PipelineDefinition pipeline)
         {
-            sprint.SetPipeline(pipelineId);
+            sprint.AssignPipelineInternal(pipeline);
         }
 
         public override void UploadReviewSummary(Sprint sprint, string documentPath)
