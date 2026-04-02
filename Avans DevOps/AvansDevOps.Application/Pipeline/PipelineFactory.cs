@@ -1,9 +1,4 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Application.Pipeline
 {
@@ -11,71 +6,35 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
     {
         public PipelineDefinition CreateBuildValidationPipeline(string pipelineName)
         {
-            if (string.IsNullOrWhiteSpace(pipelineName))
-                throw new ArgumentException("Pipeline name cannot be empty.", nameof(pipelineName));
-
-            var pipeline = new PipelineDefinition(Guid.NewGuid(), pipelineName);
-
-            var sourceStage = new PipelineStage(Guid.NewGuid(), "Source");
-            sourceStage.Add(new SourceAction(
-                Guid.NewGuid(),
-                "Get Sources",
-                new Dictionary<string, string>
-                {
-                    { "Repository", "AvansDevOpsRepo" },
-                    { "Branch", "main" }
-                }));
-
-            var buildStage = new PipelineStage(Guid.NewGuid(), "Build");
-            buildStage.Add(new PackageAction(
-                Guid.NewGuid(),
-                "Install Packages",
-                new Dictionary<string, string>
-                {
-                    { "PackageManager", "NuGet" }
-                }));
-            buildStage.Add(new BuildAction(
-                Guid.NewGuid(),
-                "Build Solution",
-                new Dictionary<string, string>
-                {
-                    { "SolutionPath", "AvansDevOps.sln" },
-                    { "Configuration", "Release" }
-                }));
-
-            var qualityStage = new PipelineStage(Guid.NewGuid(), "Quality");
-            qualityStage.Add(new TestAction(
-                Guid.NewGuid(),
-                "Run Unit Tests",
-                new Dictionary<string, string>
-                {
-                    { "TestProject", "AvansDevOps.Tests" },
-                    { "TestTool", "NUnit" }
-                }));
-            qualityStage.Add(new AnalyseAction(
-                Guid.NewGuid(),
-                "Run Code Analysis",
-                new Dictionary<string, string>
-                {
-                    { "AnalysisTool", "SonarQube" }
-                }));
-
-            pipeline.Add(sourceStage);
-            pipeline.Add(buildStage);
-            pipeline.Add(qualityStage);
-
+            var pipeline = CreatePipelineWithCommonStages(pipelineName);
             return pipeline;
         }
 
         public PipelineDefinition CreateDeploymentPipeline(string pipelineName)
+        {
+            var pipeline = CreatePipelineWithCommonStages(pipelineName);
+            pipeline.Add(CreateDeployStage());
+            return pipeline;
+        }
+
+        private static PipelineDefinition CreatePipelineWithCommonStages(string pipelineName)
         {
             if (string.IsNullOrWhiteSpace(pipelineName))
                 throw new ArgumentException("Pipeline name cannot be empty.", nameof(pipelineName));
 
             var pipeline = new PipelineDefinition(Guid.NewGuid(), pipelineName);
 
-            var sourceStage = new PipelineStage(Guid.NewGuid(), "Source");
-            sourceStage.Add(new SourceAction(
+            pipeline.Add(CreateSourceStage());
+            pipeline.Add(CreateBuildStage());
+            pipeline.Add(CreateQualityStage());
+
+            return pipeline;
+        }
+
+        private static PipelineStage CreateSourceStage()
+        {
+            var stage = new PipelineStage(Guid.NewGuid(), "Source");
+            stage.Add(new SourceAction(
                 Guid.NewGuid(),
                 "Get Sources",
                 new Dictionary<string, string>
@@ -84,15 +43,20 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
                     { "Branch", "main" }
                 }));
 
-            var buildStage = new PipelineStage(Guid.NewGuid(), "Build");
-            buildStage.Add(new PackageAction(
+            return stage;
+        }
+
+        private static PipelineStage CreateBuildStage()
+        {
+            var stage = new PipelineStage(Guid.NewGuid(), "Build");
+            stage.Add(new PackageAction(
                 Guid.NewGuid(),
                 "Install Packages",
                 new Dictionary<string, string>
                 {
                     { "PackageManager", "NuGet" }
                 }));
-            buildStage.Add(new BuildAction(
+            stage.Add(new BuildAction(
                 Guid.NewGuid(),
                 "Build Solution",
                 new Dictionary<string, string>
@@ -101,8 +65,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
                     { "Configuration", "Release" }
                 }));
 
-            var qualityStage = new PipelineStage(Guid.NewGuid(), "Quality");
-            qualityStage.Add(new TestAction(
+            return stage;
+        }
+
+        private static PipelineStage CreateQualityStage()
+        {
+            var stage = new PipelineStage(Guid.NewGuid(), "Quality");
+            stage.Add(new TestAction(
                 Guid.NewGuid(),
                 "Run Unit Tests",
                 new Dictionary<string, string>
@@ -110,7 +79,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
                     { "TestProject", "AvansDevOps.Tests" },
                     { "TestTool", "NUnit" }
                 }));
-            qualityStage.Add(new AnalyseAction(
+            stage.Add(new AnalyseAction(
                 Guid.NewGuid(),
                 "Run Code Analysis",
                 new Dictionary<string, string>
@@ -118,8 +87,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
                     { "AnalysisTool", "SonarQube" }
                 }));
 
-            var deployStage = new PipelineStage(Guid.NewGuid(), "Deploy");
-            deployStage.Add(new DeployAction(
+            return stage;
+        }
+
+        private static PipelineStage CreateDeployStage()
+        {
+            var stage = new PipelineStage(Guid.NewGuid(), "Deploy");
+            stage.Add(new DeployAction(
                 Guid.NewGuid(),
                 "Deploy To Environment",
                 new Dictionary<string, string>
@@ -127,12 +101,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
                     { "TargetEnvironment", "Test" }
                 }));
 
-            pipeline.Add(sourceStage);
-            pipeline.Add(buildStage);
-            pipeline.Add(qualityStage);
-            pipeline.Add(deployStage);
-
-            return pipeline;
+            return stage;
         }
     }
 }
