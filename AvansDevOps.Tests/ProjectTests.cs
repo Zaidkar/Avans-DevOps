@@ -6,28 +6,114 @@ namespace AvansDevOps.Tests
 {
     public class ProjectTests
     {
-        [Fact]
-        public void AddBacklogItem_WhenItemIsValid_AddsItemToProductBacklog()
+        private static Project CreateProject()
         {
-            // Arrange
-            var productOwner = new User
+            return new Project(
+                Guid.NewGuid(),
+                "Avans DevOps",
+                "Demo project",
+                CreateUser("Product Owner"));
+        }
+
+        private static User CreateUser(string name)
+        {
+            return new User
             {
                 Id = Guid.NewGuid(),
-                Name = "Product Owner",
-                Email = "po@avans.dev"
+                Name = name,
+                Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
             };
+        }
 
+        private static BacklogItem CreateBacklogItem()
+        {
+            return new BacklogItem(
+                Guid.NewGuid(),
+                "Backlog item",
+                "Description",
+                5);
+        }
+
+        private static Sprint CreateSprint()
+        {
+            return new Sprint(
+                Guid.NewGuid(),
+                "Sprint 1",
+                new DateOnly(2026, 1, 1),
+                new DateOnly(2026, 1, 14),
+                Avans_DevOps.AvansDevOps.Domain.Enum.SprintGoalType.Review);
+        }
+
+        private static BacklogItem CreateDoneBacklogItem()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Developer");
+
+            backlogItem.AssignDeveloper(developer);
+
+            var activity = new Activity(Guid.NewGuid(), "Activity 1", "Description");
+            backlogItem.AddActivity(activity);
+            activity.StartWork();
+            activity.MarkDone();
+
+            backlogItem.MarkReadyForTesting();
+            backlogItem.StartTesting();
+            backlogItem.MarkTested();
+            backlogItem.ApproveDone();
+
+            return backlogItem;
+        }
+        [Fact]
+        public void FR1_1_CreateProject_WithValidData_CreatesProject()
+        {
+            // Arrange
+            var productOwner = CreateUser("Product Owner");
+
+            // Act
             var project = new Project(
                 Guid.NewGuid(),
                 "Avans DevOps",
                 "Demo project",
                 productOwner);
 
-            var backlogItem = new BacklogItem(
-                Guid.NewGuid(),
-                "Create login page",
-                "As a user I want to log in",
-                3);
+            // Assert
+            Assert.Equal("Avans DevOps", project.Name);
+            Assert.Equal("Demo project", project.Description);
+            Assert.Same(productOwner, project.ProductOwner);
+        }
+
+        [Fact]
+        public void FR1_1_RenameProject_WithValidName_UpdatesName()
+        {
+            // Arrange
+            var project = CreateProject();
+
+            // Act
+            project.Rename("New project name");
+
+            // Assert
+            Assert.Equal("New project name", project.Name);
+        }
+
+        [Fact]
+        public void FR1_1_ChangeDescription_WithNull_SetsEmptyDescription()
+        {
+            // Arrange
+            var project = CreateProject();
+
+            // Act
+            project.ChangeDescription(null);
+
+            // Assert
+            Assert.Equal(string.Empty, project.Description);
+        }
+
+        [Fact]
+        public void FR1_2_ProjectHasProductBacklog_WhenBacklogItemAdded_ItemIsPresent()
+        {
+            // Arrange
+            var project = CreateProject();
+            var backlogItem = CreateBacklogItem();
 
             // Act
             project.AddBacklogItem(backlogItem);
@@ -38,57 +124,92 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void Rename_WhenNameIsValid_UpdatesProjectName()
+        public void FR1_2_ProjectHasProductBacklog_WhenBacklogItemRemoved_ItemIsRemoved()
         {
             // Arrange
-            var productOwner = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = "Product Owner",
-                Email = "po@avans.dev"
-            };
+            var project = CreateProject();
+            var backlogItem = CreateBacklogItem();
 
-            var project = new Project(
-                Guid.NewGuid(),
-                "Old project name",
-                "Demo project",
-                productOwner);
+            project.AddBacklogItem(backlogItem);
 
             // Act
-            project.Rename("New project name");
+            project.RemoveBacklogItem(backlogItem.Id);
 
             // Assert
-            Assert.Equal("New project name", project.Name);
+            Assert.Empty(project.ProductBacklog);
         }
 
         [Fact]
-        public void AddBacklogItem_WhenItemAlreadyExists_ThrowsInvalidOperationException()
+        public void FR1_2_ProjectHasSprints_WhenSprintAdded_SprintIsPresent()
         {
             // Arrange
-            var productOwner = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = "Product Owner",
-                Email = "po@avans.dev"
-            };
+            var project = CreateProject();
+            var sprint = CreateSprint();
 
-            var project = new Project(
-                Guid.NewGuid(),
-                "Avans DevOps",
-                "Demo project",
-                productOwner);
+            // Act
+            project.AddSprint(sprint);
 
-            var backlogItem = new BacklogItem(
-                Guid.NewGuid(),
-                "Create login page",
-                "As a user I want to log in",
-                3);
+            // Assert
+            Assert.Single(project.Sprints);
+            Assert.Contains(sprint, project.Sprints);
+        }
+
+        [Fact]
+        public void FR1_2_ProjectHasSprints_WhenSprintRemoved_SprintIsRemoved()
+        {
+            // Arrange
+            var project = CreateProject();
+            var sprint = CreateSprint();
+
+            project.AddSprint(sprint);
+
+            // Act
+            project.RemoveSprint(sprint.Id);
+
+            // Assert
+            Assert.Empty(project.Sprints);
+        }
+
+        [Fact]
+        public void FR1_3_ProjectHasExactlyOneProductOwner_WhenProductOwnerIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+
+            // Act & Assert
+            var exception = Assert.Throws<ArgumentNullException>(() =>
+                new Project(id, "Avans DevOps", "Demo project", null!));
+
+            Assert.Equal("productOwner", exception.ParamName);
+        }
+
+        [Fact]
+        public void FR1_3_ProjectHasExactlyOneProductOwner_WhenChanged_ReplacesOwner()
+        {
+            // Arrange
+            var project = CreateProject();
+            var newProductOwner = CreateUser("New Product Owner");
+
+            // Act
+            project.ChangeProductOwner(newProductOwner);
+
+            // Assert
+            Assert.Same(newProductOwner, project.ProductOwner);
+        }
+
+        [Fact]
+        public void FR2_1_RemoveBacklogItem_WhenDone_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var project = CreateProject();
+            var backlogItem = CreateDoneBacklogItem();
 
             project.AddBacklogItem(backlogItem);
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => project.AddBacklogItem(backlogItem));
-            Assert.Equal("This backlog item is already part of the product backlog.", exception.Message);
+            var exception = Assert.Throws<InvalidOperationException>(() => project.RemoveBacklogItem(backlogItem.Id));
+            Assert.Equal("Backlog item is done and cannot be removed.", exception.Message);
         }
+
     }
 }

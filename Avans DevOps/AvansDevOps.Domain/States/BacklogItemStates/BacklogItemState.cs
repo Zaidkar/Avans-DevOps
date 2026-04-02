@@ -53,6 +53,16 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
             throw InvalidAction(nameof(RemoveActivity));
         }
 
+        public virtual void AssignToSprint(BacklogItem backlogItem, Guid sprintId)
+        {
+            throw InvalidAction(nameof(AssignToSprint));
+        }
+
+        public virtual void RemoveFromSprint(BacklogItem backlogItem)
+        {
+            throw InvalidAction(nameof(RemoveFromSprint));
+        }
+
         public virtual void StartWork(BacklogItem backlogItem)
         {
             throw InvalidAction(nameof(StartWork));
