@@ -44,6 +44,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 
         public override void AssignPipeline(Sprint sprint, PipelineDefinition pipeline)
         {
+            if (!sprint.IsReleaseSprint())
+                throw new InvalidOperationException("Only release sprints can have a pipeline assigned.");
+
             sprint.AssignPipelineInternal(pipeline);
         }   
 

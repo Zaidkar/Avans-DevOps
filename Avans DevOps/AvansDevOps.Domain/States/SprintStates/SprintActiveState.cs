@@ -14,11 +14,17 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 
         public override void AssignPipeline(Sprint sprint, PipelineDefinition pipeline)
         {
+            if (!sprint.IsReleaseSprint())
+                throw new InvalidOperationException("Only release sprints can have a pipeline assigned.");
+
             sprint.AssignPipelineInternal(pipeline);
         }
 
         public override void UploadReviewSummary(Sprint sprint, string documentPath)
         {
+            if (!sprint.IsReviewSprint())
+                throw new InvalidOperationException("Only review sprints can upload a review summary.");
+
             sprint.SetReviewSummaryDocument(documentPath);
         }
 
