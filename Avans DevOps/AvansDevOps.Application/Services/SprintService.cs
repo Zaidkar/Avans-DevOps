@@ -197,14 +197,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
 
         public bool RetryRelease(Guid sprintId)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
-
-            sprint.RetryRelease();
-            return _sprintRepository.Update(sprintId, sprint);
+            return _pipelineService.RetryRelease(sprintId);
         }
 
         public bool CancelRelease(Guid sprintId)

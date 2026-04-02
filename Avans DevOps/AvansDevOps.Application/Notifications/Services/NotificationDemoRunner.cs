@@ -56,7 +56,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
 
             var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler, pipelineService);
             var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler, userRepository);
-            var discussionService = new DiscussionService(discussionRepository, userRepository, discussionHandler);
+            var discussionService = new DiscussionService(discussionRepository, backlogRepository, userRepository, discussionHandler);
 
             var users = userRepository.GetAll();
             var productOwner = users[0];
@@ -123,6 +123,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             PrepareFinishedReleaseSprint(failureSprintId, "Pipeline Failure Flow");
             sprintService.BeginRelease(failureSprintId);
             sprintService.ReleaseFailed(failureSprintId);
+            sprintService.RetryRelease(failureSprintId);
 
             Console.WriteLine("[Demo] Pipeline cancelled notification");
             var cancelledSprintId = CreateReleaseSprint("Pipeline Cancelled Sprint");

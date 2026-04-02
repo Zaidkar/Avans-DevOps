@@ -112,6 +112,28 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             return true;
         }
 
+        public bool RetryRelease(Guid sprintId)
+        {
+            var sprint = _sprintRepository.GetById(sprintId);
+            if (sprint == null || sprint.Pipeline == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                sprint.RetryRelease();
+                _sprintRepository.Update(sprintId, sprint);
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+
+            var executionResult = sprint.Pipeline.Execute();
+            return NotifyReleaseResult(sprintId, executionResult.Succeeded);
+        }
+
         public bool NotifyReleaseResult(Guid sprintId, bool releaseSucceeded)
         {
             return releaseSucceeded

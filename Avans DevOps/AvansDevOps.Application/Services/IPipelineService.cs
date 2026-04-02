@@ -11,6 +11,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
         bool ReleaseSucceeded(Guid sprintId);
         bool ReleaseFailed(Guid sprintId);
         bool CancelRelease(Guid sprintId);
+        bool RetryRelease(Guid sprintId);
         bool NotifyReleaseResult(Guid sprintId, bool releaseSucceeded);
         bool AssignPipeline(Guid sprintId, PipelineDefinition pipeline);
     }
