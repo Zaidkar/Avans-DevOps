@@ -4,10 +4,11 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories
 {
     public interface IBacklogItemRepository
     {
-        List<(int Id, BacklogItem Item)> GetAll();
-        BacklogItem? GetById(int id);
-        int Create(BacklogItem item);
-        bool Update(int id, BacklogItem item);
-        bool Delete(int id);
+        List<(Guid Id, BacklogItem Item)> GetAll();
+        BacklogItem? GetById(Guid id);
+        Guid Create(BacklogItem item);
+        bool Update(Guid id, BacklogItem item);
+        bool Delete(Guid id);
+        Sprint? GetSprintForBacklogItem(Guid backlogItemId);
     }
 }

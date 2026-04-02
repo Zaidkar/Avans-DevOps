@@ -3,6 +3,7 @@ using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Providers;
 
 namespace Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters
 {
+    // Design Pattern: Adapter. Wraps Slack SDK behind ISlackProvider.
     public class SlackApiAdapter(SlackSdk slackSdk) : ISlackProvider
     {
         private readonly SlackSdk _slackSdk = slackSdk;

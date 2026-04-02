@@ -10,6 +10,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
     public class BacklogItem
     {
         private readonly List<Activity> _activities = new();
+        // Design Pattern: State. Behavior is delegated to the current state object.
         private BacklogItemState _state;
 
         public Guid Id { get; }
@@ -37,7 +38,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             Description = description ?? string.Empty;
             StoryPoints = storyPoints;
 
-            _state = new TodoBacklogItemState();
+            _state = new DoingBacklogItemState();
         }
 
         public void ChangeTitle(string title) => _state.ChangeTitle(this, title);

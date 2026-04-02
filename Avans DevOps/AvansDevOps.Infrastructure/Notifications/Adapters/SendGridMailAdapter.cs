@@ -3,6 +3,7 @@ using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Providers;
 
 namespace Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters
 {
+    // Design Pattern: Adapter. Wraps external mail SDK behind IMailProvider.
     public class SendGridMailAdapter(ExternalMailClient mailClient) : IMailProvider
     {
         private readonly ExternalMailClient _mailClient = mailClient;

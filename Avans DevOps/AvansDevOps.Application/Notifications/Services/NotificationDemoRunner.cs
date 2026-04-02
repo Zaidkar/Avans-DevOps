@@ -6,6 +6,7 @@ using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
 using Avans_DevOps.AvansDevOps.Application.Services;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
+using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
@@ -44,27 +45,28 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
 
             var userRepository = new FakeUserRepository();
             var sprintRepository = new FakeSprintRepository();
-            var backlogRepository = new FakeBacklogItemRepository();
+            var backlogRepository = new FakeBacklogItemRepository(sprintRepository);
             var discussionRepository = new FakeDiscussionRepository();
 
             var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler);
-            var backlogItemService = new BacklogItemService(backlogRepository, userRepository, backlogHandler);
+            var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler);
             var discussionService = new DiscussionService(discussionRepository, userRepository, discussionHandler);
 
-            // var createdSprint = sprintService.Create(new Sprint
-            // {
-            //     Name = "Sprint 1",
-            //     StartDate = DateTime.Today,
-            //     EndDate = DateTime.Today.AddDays(14)
-            // });
-            // sprintService.FinishSprint(createdSprint.Id);
-            // sprintService.NotifyReleaseResult(createdSprint.Id, releaseSucceeded: true);
-
-            var backlogItemId = backlogItemService.Create(new BacklogItem());
-            backlogItemService.MarkReadyForTesting(backlogItemId, "BacklogItem 1");
-
-            // var discussionId = discussionService.Create(new DiscussionThread(), "Sprint retrospective");
-            // discussionService.Reply(discussionId, "Sprint retrospective");
+           var sprint = sprintService.Create(new Sprint(Guid.NewGuid(), "Sprint 1",DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)), SprintGoalType.Review));
+       
+            var backlogItemId = backlogItemService.Create(new BacklogItem(Guid.NewGuid(), "BacklogItem 1", "Demo item", 3));
+            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().First().Id, SprintRole.Developer);
+            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(1).Id, SprintRole.Tester);
+            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(2).Id, SprintRole.ProductOwner);
+            sprintService.AddBacklogItem(sprint.Id, backlogItemId);
+            Console.WriteLine($"{string.Join(", ", sprintService.GetAll().Select(s => s.Name))}");
+            backlogItemService.MarkReadyForTesting(backlogItemId);
+            
+            backlogItemService.MoveBackToTodo(backlogItemId);
+            // var discussion = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint retrospective");
+            // var discussionId = discussionService.Create(discussion);
+            // var author = userRepository.GetAll().First();
+            // discussionService.Reply(discussionId, new DiscussionPost(Guid.NewGuid(), author, "Mee eens", DateTime.UtcNow));
         }
     }
 }
