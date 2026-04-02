@@ -18,6 +18,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public string Description { get; private set; }
         public int StoryPoints { get; private set; }
         public User? AssignedDeveloper { get; private set; }
+        public User? LastDeveloper { get; private set; }
 
         public IReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
         public string CurrentState => _state.Name;
@@ -83,6 +84,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void AssignDeveloperInternal(User developer)
         {
             AssignedDeveloper = developer ?? throw new ArgumentNullException(nameof(developer));
+            LastDeveloper = developer;
 
         }
 
