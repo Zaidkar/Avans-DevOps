@@ -4,6 +4,7 @@ using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Strategies
 {
+    // Design Pattern: Strategy. Swaps notification channel behavior at runtime.
     public class NotificationContext(INotificationStrategy strategy)
     {
         private INotificationStrategy _strategy = strategy;

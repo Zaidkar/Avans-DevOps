@@ -4,27 +4,26 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
 {
     internal class FakeDiscussionRepository : IDiscussionRepository
     {
-        private readonly Dictionary<int, DiscussionThread> _threads = [];
-        private int _nextId = 1;
+        private readonly Dictionary<Guid, DiscussionThread> _threads = [];
 
-        public List<(int Id, DiscussionThread Thread)> GetAll()
+        public List<(Guid Id, DiscussionThread Thread)> GetAll()
         {
             return _threads.Select(pair => (pair.Key, pair.Value)).ToList();
         }
 
-        public DiscussionThread? GetById(int id)
+        public DiscussionThread? GetById(Guid id)
         {
             return _threads.TryGetValue(id, out var thread) ? thread : null;
         }
 
-        public int Create(DiscussionThread thread)
+        public Guid Create(DiscussionThread thread)
         {
-            var id = _nextId++;
+            var id = thread.Id;
             _threads[id] = thread;
             return id;
         }
 
-        public bool Update(int id, DiscussionThread thread)
+        public bool Update(Guid id, DiscussionThread thread)
         {
             if (!_threads.ContainsKey(id))
             {
@@ -35,7 +34,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
             return true;
         }
 
-        public bool Delete(int id)
+        public bool Delete(Guid id)
         {
             return _threads.Remove(id);
         }

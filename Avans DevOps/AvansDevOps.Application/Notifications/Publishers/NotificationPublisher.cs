@@ -2,6 +2,7 @@ using Avans_DevOps.AvansDevOps.Application.Notifications.Contracts;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Publishers
 {
+    // Design Pattern: Observer. Publishes events to subscribed observers.
     public class NotificationPublisher
     {
         private readonly List<INotificationSubscriber> _subscribers = new();

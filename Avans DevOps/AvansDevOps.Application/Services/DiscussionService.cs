@@ -10,24 +10,24 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IDiscussionNotificationHandler _discussionNotificationHandler = discussionNotificationHandler;
 
-        public List<(int Id, DiscussionThread Thread)> GetAll()
+        public List<(Guid Id, DiscussionThread Thread)> GetAll()
         {
             return _discussionRepository.GetAll();
         }
 
-        public DiscussionThread? GetById(int id)
+        public DiscussionThread? GetById(Guid id)
         {
             return _discussionRepository.GetById(id);
         }
 
-        public int Create(DiscussionThread thread, string discussionTitle)
+        public Guid Create(DiscussionThread thread)
         {
             var id = _discussionRepository.Create(thread);
-            _discussionNotificationHandler.NotifyDiscussionCreated(discussionTitle, _userRepository.GetAll());
+            _discussionNotificationHandler.NotifyDiscussionCreated(thread.Subject, _userRepository.GetAll());
             return id;
         }
 
-        public bool Reply(int discussionId, string discussionTitle)
+        public bool Reply(Guid discussionId, DiscussionPost post)
         {
             var thread = _discussionRepository.GetById(discussionId);
             if (thread == null)
@@ -35,16 +35,19 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
                 return false;
             }
 
-            _discussionNotificationHandler.NotifyDiscussionReply(discussionTitle, _userRepository.GetAll());
+            thread.AddPost(post);
+            _discussionRepository.Update(discussionId, thread);
+
+            _discussionNotificationHandler.NotifyDiscussionReply(thread.Subject, _userRepository.GetAll());
             return true;
         }
 
-        public bool Update(int id, DiscussionThread thread)
+        public bool Update(Guid id, DiscussionThread thread)
         {
             return _discussionRepository.Update(id, thread);
         }
 
-        public bool Delete(int id)
+        public bool Delete(Guid id)
         {
             return _discussionRepository.Delete(id);
         }
