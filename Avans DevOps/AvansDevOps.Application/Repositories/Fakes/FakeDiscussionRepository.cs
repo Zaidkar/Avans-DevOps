@@ -2,7 +2,7 @@ using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
 {
-    internal class FakeDiscussionRepository : IDiscussionRepository
+    public class FakeDiscussionRepository : IDiscussionRepository
     {
         private readonly Dictionary<Guid, DiscussionThread> _threads = [];
 

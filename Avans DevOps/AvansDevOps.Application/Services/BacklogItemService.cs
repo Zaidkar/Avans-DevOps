@@ -5,7 +5,7 @@ using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IBacklogItemNotificationHandler backlogNotificationHandler, IUserRepository userRepository)
+    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IBacklogItemNotificationHandler backlogNotificationHandler, IUserRepository userRepository) : IBacklogItemService
     {
         private readonly IBacklogItemRepository _backlogItemRepository = backlogItemRepository;
         private readonly ISprintRepository _sprintRepository = sprintRepository;

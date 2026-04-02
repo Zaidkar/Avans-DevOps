@@ -1,15 +1,21 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
+using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    public class SprintService(ISprintRepository sprintRepository, IUserRepository userRepository, ISprintNotificationHandler sprintNotificationHandler)
+    public class SprintService(
+        ISprintRepository sprintRepository,
+        IUserRepository userRepository,
+        ISprintNotificationHandler sprintNotificationHandler,
+        IPipelineService pipelineService) : ISprintService
     {
         private readonly ISprintRepository _sprintRepository = sprintRepository;
         private readonly IUserRepository _userRepository = userRepository;
         private readonly ISprintNotificationHandler _sprintNotificationHandler = sprintNotificationHandler;
+        private readonly IPipelineService _pipelineService = pipelineService;
 
         public List<Sprint> GetAll()
         {
@@ -110,16 +116,19 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             return _sprintRepository.Update(sprintId, sprint);
         }
 
-        public bool AssignPipeline(Guid sprintId, Guid pipelineId)
+        public bool AssignPipeline(Guid sprintId, PipelineDefinition pipeline)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
+            return _pipelineService.AssignPipeline(sprintId, pipeline);
+        }
 
-            sprint.AssignPipeline(pipelineId);
-            return _sprintRepository.Update(sprintId, sprint);
+        public bool AssignBuildValidationPipeline(Guid sprintId, string pipelineName)
+        {
+            return _pipelineService.AssignBuildValidationPipeline(sprintId, pipelineName);
+        }
+
+        public bool AssignDeploymentPipeline(Guid sprintId, string pipelineName)
+        {
+            return _pipelineService.AssignDeploymentPipeline(sprintId, pipelineName);
         }
 
         public bool UploadReviewSummary(Guid sprintId, string documentPath)
@@ -168,48 +177,22 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
 
         public bool BeginRelease(Guid sprintId)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
+            return _pipelineService.BeginRelease(sprintId);
+        }
 
-            sprint.BeginRelease();
-            return _sprintRepository.Update(sprintId, sprint);
+        public bool ExecuteReleasePipeline(Guid sprintId)
+        {
+            return _pipelineService.ExecuteReleasePipeline(sprintId);
         }
 
         public bool ReleaseSucceeded(Guid sprintId)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
-
-            sprint.ReleaseSucceeded();
-            _sprintRepository.Update(sprintId, sprint);
-
-            var members = _sprintRepository.GetMembers(sprintId);
-            var recipients = members.Select(m => m.User).ToList();
-            _sprintNotificationHandler.NotifyReleaseSuccess(sprint.Name, recipients);
-            return true;
+            return _pipelineService.ReleaseSucceeded(sprintId);
         }
 
         public bool ReleaseFailed(Guid sprintId)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
-
-            sprint.ReleaseFailed();
-            _sprintRepository.Update(sprintId, sprint);
-
-            var members = _sprintRepository.GetMembers(sprintId);
-            var recipients = members.Select(m => m.User).ToList();
-            _sprintNotificationHandler.NotifyReleaseFailure(sprint.Name, recipients);
-            return true;
+            return _pipelineService.ReleaseFailed(sprintId);
         }
 
         public bool RetryRelease(Guid sprintId)
@@ -226,19 +209,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
 
         public bool CancelRelease(Guid sprintId)
         {
-            var sprint = _sprintRepository.GetById(sprintId);
-            if (sprint == null)
-            {
-                return false;
-            }
-
-            sprint.CancelRelease();
-            _sprintRepository.Update(sprintId, sprint);
-
-            var recipients = _sprintRepository.GetMembersByRole(sprintId, SprintRole.ScrumMaster);
-            recipients.AddRange(_sprintRepository.GetMembersByRole(sprintId, SprintRole.ProductOwner));
-            _sprintNotificationHandler.NotifyReleaseFailure(sprint.Name, recipients);
-            return true;
+            return _pipelineService.CancelRelease(sprintId);
         }
 
         public bool CloseReview(Guid sprintId)
@@ -255,26 +226,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
 
         public bool NotifyReleaseResult(Guid id, bool releaseSucceeded)
         {
-            var sprint = _sprintRepository.GetById(id);
-            if (sprint == null)
-            {
-                return false;
-            }
-
-            // Notify sprint members instead of all users
-            var members = _sprintRepository.GetMembers(id);
-            var recipients = members.Select(m => m.User).ToList();
-            
-            if (releaseSucceeded)
-            {
-                _sprintNotificationHandler.NotifyReleaseSuccess(sprint.Name, recipients);
-            }
-            else
-            {
-                _sprintNotificationHandler.NotifyReleaseFailure(sprint.Name, recipients);
-            }
-
-            return true;
+            return _pipelineService.NotifyReleaseResult(id, releaseSucceeded);
         }
 
         

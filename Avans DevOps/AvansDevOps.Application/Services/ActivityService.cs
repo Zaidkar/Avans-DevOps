@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    public class ActivityService
+    public class ActivityService : IActivityService
     {
         
     }

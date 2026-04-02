@@ -2,9 +2,8 @@ using Avans_DevOps.AvansDevOps.Application.Notifications.Contracts;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Observers;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Publishers;
+using Avans_DevOps.AvansDevOps.Application.Pipeline;
 using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
-using Avans_DevOps.AvansDevOps.Application.Reports.Exporters;
-using Avans_DevOps.AvansDevOps.Application.Reports.Services;
 using Avans_DevOps.AvansDevOps.Application.Services;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
@@ -36,70 +35,101 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             };
 
             var context = new NotificationContext(EmailStrategy);
+            var pipelineEmailOnlyContext = new NotificationContext(EmailStrategy);
             var publisher = new NotificationPublisher();
             var backlogHandler = new BacklogItemNotificationHandler(publisher);
             var sprintHandler = new SprintNotificationHandler(publisher);
             var discussionHandler = new DiscussionNotificationHandler(publisher);
+            var pipelineReleaseHandler = new PipelineReleaseNotificationHandler(publisher);
 
             publisher.Subscribe(new BacklogItemNotificationObserver(context));
             publisher.Subscribe(new SprintNotificationObserver(context));
             publisher.Subscribe(new DiscussionNotificationObserver(context));
+            publisher.Subscribe(new PipelineReleaseNotificationObserver(pipelineEmailOnlyContext));
 
             var userRepository = new FakeUserRepository();
             var sprintRepository = new FakeSprintRepository();
             var backlogRepository = new FakeBacklogItemRepository(sprintRepository);
             var discussionRepository = new FakeDiscussionRepository();
+            var pipelineFactory = new PipelineFactory();
+            var pipelineService = new PipelineService(sprintRepository, pipelineFactory, pipelineReleaseHandler);
 
-            var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler);
+            var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler, pipelineService);
             var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler, userRepository);
             var discussionService = new DiscussionService(discussionRepository, userRepository, discussionHandler);
 
-           var sprint = sprintService.Create(new Sprint(Guid.NewGuid(), "Sprint 1",DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)), SprintGoalType.Review));
-       
+            var users = userRepository.GetAll();
+            var productOwner = users[0];
+            var tester = users[1];
+            var scrumMaster = users[2];
+
+            Guid CreateReleaseSprint(string sprintName)
+            {
+                var sprint = sprintService.Create(new Sprint(
+                    Guid.NewGuid(),
+                    sprintName,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)),
+                    SprintGoalType.Release));
+
+                sprintService.AddMemberToSprint(sprint.Id, productOwner.Id, SprintRole.ProductOwner);
+                sprintService.AddMemberToSprint(sprint.Id, tester.Id, SprintRole.Tester);
+                sprintService.AddMemberToSprint(sprint.Id, scrumMaster.Id, SprintRole.ScrumMaster);
+
+                return sprint.Id;
+            }
+
+            void PrepareFinishedReleaseSprint(Guid sprintId, string pipelineName)
+            {
+                sprintService.AssignDeploymentPipeline(sprintId, pipelineName);
+                sprintService.Start(sprintId);
+
+                var sprint = sprintService.GetById(sprintId);
+                if (sprint != null)
+                {
+                    sprint.Finish();
+                    sprintRepository.Update(sprintId, sprint);
+                }
+            }
+
+            Console.WriteLine("[Demo] Backlog notifications");
+            var backlogSprintId = CreateReleaseSprint("Backlog Notification Sprint");
             var backlogItemId = backlogItemService.Create(new BacklogItem(Guid.NewGuid(), "BacklogItem 1", "Demo item", 3));
-            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().First().Id, SprintRole.Developer);
-            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(1).Id, SprintRole.Tester);
-            sprintService.AddMemberToSprint(sprint.Id, userRepository.GetAll().ElementAt(2).Id, SprintRole.ScrumMaster);
-            sprintService.AddBacklogItem(sprint.Id, backlogItemId);
-            Console.WriteLine($"{string.Join(", ", sprintService.GetAll().Select(s => s.Name))}");
-            backlogItemService.AssignDeveloper(backlogItemId, userRepository.GetAll().First().Id);
-            
+            sprintService.AddBacklogItem(backlogSprintId, backlogItemId);
+            backlogItemService.AssignDeveloper(backlogItemId, productOwner.Id);
             backlogItemService.MarkReadyForTesting(backlogItemId);
             backlogItemService.StartTesting(backlogItemId);
             backlogItemService.MarkTested(backlogItemId);
             backlogItemService.ReturnToReadyForTesting(backlogItemId);
             backlogItemService.StartTesting(backlogItemId);
             backlogItemService.ReturnToTodo(backlogItemId);
-            backlogItemService.AssignDeveloper(backlogItemId, userRepository.GetAll().ElementAt(0).Id);
-            backlogItemService.MarkReadyForTesting(backlogItemId);
-            backlogItemService.StartTesting(backlogItemId);
-            backlogItemService.MarkTested(backlogItemId);
-            backlogItemService.ApproveDone(backlogItemId);
 
-            var reportGenerator = new ReportGenerator(sprintRepository, backlogRepository);
-            var reportContent = reportGenerator.Generate(
-                sprint.Id,
-                "Avans_Coen",
-                "Avans DevOps",
-                "v1.0",
-                "[AVANS LOGO]",
-                sprint.Name,
-                "Demo rapportage");
+            Console.WriteLine("[Demo] Discussion notifications");
+            var discussion = new DiscussionThread(Guid.NewGuid(), backlogSprintId, "Sprint retrospective");
+            var discussionId = discussionService.Create(discussion);
+            discussionService.Reply(discussionId, new DiscussionPost(Guid.NewGuid(), scrumMaster, "Mee eens", DateTime.UtcNow));
 
-            var outputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "reports");
+            Console.WriteLine("[Demo] Sprint finished notification");
+            sprintService.FinishSprint(backlogSprintId);
 
-            var pdfResult = ReportExporterFactory.Create(ReportFormat.Pdf).Export(reportContent, sprint.Name, outputDirectory);
+            Console.WriteLine("[Demo] Pipeline success notification");
+            var successSprintId = CreateReleaseSprint("Pipeline Success Sprint");
+            PrepareFinishedReleaseSprint(successSprintId, "Pipeline Success Flow");
+            sprintService.BeginRelease(successSprintId);
+            sprintService.ExecuteReleasePipeline(successSprintId);
 
-            var pngResult = ReportExporterFactory.Create(ReportFormat.Png).Export(reportContent, sprint.Name, outputDirectory);
+            Console.WriteLine("[Demo] Pipeline failure notification");
+            var failureSprintId = CreateReleaseSprint("Pipeline Failure Sprint");
+            PrepareFinishedReleaseSprint(failureSprintId, "Pipeline Failure Flow");
+            sprintService.BeginRelease(failureSprintId);
+            sprintService.ReleaseFailed(failureSprintId);
 
-            Console.WriteLine($"[Reporting] PDF: {pdfResult}");
-            Console.WriteLine($"[Reporting] PNG: {pngResult}");
+            Console.WriteLine("[Demo] Pipeline cancelled notification");
+            var cancelledSprintId = CreateReleaseSprint("Pipeline Cancelled Sprint");
+            PrepareFinishedReleaseSprint(cancelledSprintId, "Pipeline Cancelled Flow");
+            sprintService.CancelRelease(cancelledSprintId);
 
-
-            // var discussion = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint retrospective");
-            // var discussionId = discussionService.Create(discussion);
-            // var author = userRepository.GetAll().First();
-            // discussionService.Reply(discussionId, new DiscussionPost(Guid.NewGuid(), author, "Mee eens", DateTime.UtcNow));
+            Console.WriteLine("[Demo] Notification demo completed");
         }
     }
 }

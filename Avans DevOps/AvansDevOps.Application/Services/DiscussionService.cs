@@ -4,7 +4,7 @@ using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    internal class DiscussionService(IDiscussionRepository discussionRepository, IUserRepository userRepository, IDiscussionNotificationHandler discussionNotificationHandler)
+    public class DiscussionService(IDiscussionRepository discussionRepository, IUserRepository userRepository, IDiscussionNotificationHandler discussionNotificationHandler) : IDiscussionService
     {
         private readonly IDiscussionRepository _discussionRepository = discussionRepository;
         private readonly IUserRepository _userRepository = userRepository;
