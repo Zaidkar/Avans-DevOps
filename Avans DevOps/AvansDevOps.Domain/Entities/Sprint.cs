@@ -11,7 +11,11 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
     {
         private readonly List<SprintMember> _members = [];
         private readonly List<Guid> _backlogItemIds = [];
+        private readonly List<ScmReference> _scmReferences = [];
         private SprintState _state;
+        
+
+        public IReadOnlyCollection<ScmReference> ScmReferences => _scmReferences.AsReadOnly();
 
         public Guid Id { get; }
         public string Name { get; private set; }
@@ -69,7 +73,24 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public void CancelRelease() => _state.CancelRelease(this);
         public void CloseReview() => _state.CloseReview(this);
 
+        public void AddScmReference(ScmReference scmReference)
+        {
+            if (scmReference is null)
+                throw new ArgumentNullException(nameof(scmReference));
 
+            if (_scmReferences.Any(x => x.Id == scmReference.Id))
+                throw new InvalidOperationException("This SCM reference is already linked to the sprint.");
+
+            _scmReferences.Add(scmReference);
+        }
+
+        public void RemoveScmReference(Guid scmReferenceId)
+        {
+            var scmReference = _scmReferences.SingleOrDefault(x => x.Id == scmReferenceId)
+                ?? throw new InvalidOperationException("SCM reference not found on this sprint.");
+
+            _scmReferences.Remove(scmReference);
+        }
         internal void SetName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))

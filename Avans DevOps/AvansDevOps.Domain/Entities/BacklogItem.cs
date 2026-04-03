@@ -10,7 +10,8 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
     public class BacklogItem : IBacklogWorkItemComponent
     {
         private readonly List<Activity> _activities = new();
-        // Design Pattern: State. Behavior is delegated to the current state object.
+        private readonly List<ScmReference> _scmReferences = new();
+
         private BacklogItemState _state;
 
         public Guid Id { get; }
@@ -23,6 +24,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         public IReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
         public IReadOnlyCollection<IBacklogWorkItemComponent> Children => _activities.AsReadOnly();
+        public IReadOnlyCollection<ScmReference> ScmReferences => _scmReferences.AsReadOnly();
         public string CurrentState => _state.Name;
 
         public BacklogItem(Guid id, string title, string description, int storyPoints)
@@ -42,6 +44,24 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             StoryPoints = storyPoints;
 
             _state = new TodoBacklogItemState();
+        }
+        public void AddScmReference(ScmReference scmReference)
+        {
+            if (scmReference is null)
+                throw new ArgumentNullException(nameof(scmReference));
+
+            if (_scmReferences.Any(x => x.Id == scmReference.Id))
+                throw new InvalidOperationException("This SCM reference is already linked to the backlog item.");
+
+            _scmReferences.Add(scmReference);
+        }
+
+        public void RemoveScmReference(Guid scmReferenceId)
+        {
+            var scmReference = _scmReferences.SingleOrDefault(x => x.Id == scmReferenceId)
+                ?? throw new InvalidOperationException("SCM reference not found on this backlog item.");
+
+            _scmReferences.Remove(scmReference);
         }
 
         public void ChangeTitle(string title) => _state.ChangeTitle(this, title);
@@ -64,6 +84,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public void ApproveDone() => _state.ApproveDone(this);
         public void ReturnToTodo() => _state.ReturnToTodo(this);
         public void ReturnToReadyForTesting() => _state.ReturnToReadyForTesting(this);
+
 
         public bool IsDone()
         {

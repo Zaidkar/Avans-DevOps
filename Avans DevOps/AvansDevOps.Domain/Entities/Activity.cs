@@ -7,11 +7,15 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
     public class Activity : IBacklogWorkItemComponent
     {
+
+        private readonly List<ScmReference> _scmReferences = new();
         public Guid Id { get; }
         public string Title { get; private set; }
         public string Description { get; private set; }
         public ActivityStatus Status { get; private set; }
         public User? AssignedDeveloper { get; private set; }
+
+        public IReadOnlyCollection<ScmReference> ScmReferences => _scmReferences.AsReadOnly();
 
         public IReadOnlyCollection<IBacklogWorkItemComponent> Children => Array.Empty<IBacklogWorkItemComponent>();
 
@@ -27,6 +31,25 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             Title = title;
             Description = description ?? string.Empty;
             Status = ActivityStatus.ToDo;
+        }
+
+        public void AddScmReference(ScmReference scmReference)
+        {
+            if (scmReference is null)
+                throw new ArgumentNullException(nameof(scmReference));
+
+            if (_scmReferences.Any(x => x.Id == scmReference.Id))
+                throw new InvalidOperationException("This SCM reference is already linked to the activity.");
+
+            _scmReferences.Add(scmReference);
+        }
+
+        public void RemoveScmReference(Guid scmReferenceId)
+        {
+            var scmReference = _scmReferences.SingleOrDefault(x => x.Id == scmReferenceId)
+                ?? throw new InvalidOperationException("SCM reference not found on this activity.");
+
+            _scmReferences.Remove(scmReference);
         }
 
         public void ChangeTitle(string title)
