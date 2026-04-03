@@ -1,14 +1,10 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Contracts;
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
-using Avans_DevOps.AvansDevOps.Application.Notifications.Observers;
-using Avans_DevOps.AvansDevOps.Application.Notifications.Publishers;
 using Avans_DevOps.AvansDevOps.Application.Pipeline;
 using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
 using Avans_DevOps.AvansDevOps.Application.Services;
-using Avans_DevOps.AvansDevOps.Application.Notifications.Strategies;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
@@ -19,44 +15,63 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [NotificationDemoRunner] Run");
 
-            var mailProvider = new SendGridMailAdapter(new ExternalMailClient());
-            var slackProvider = new SlackApiAdapter(new SlackSdk());
-            var smsProvider = new TwilioSmsAdapter(new SmsSdk());
-
-            var EmailStrategy = new EmailNotificationStrategy(mailProvider);
-            var SlackStrategy = new SlackNotificationStrategy(slackProvider);
-            var SmsStrategy = new SmsNotificationStrategy(smsProvider);
-
-            var strategies = new List<INotificationStrategy>
-            {
-                EmailStrategy,
-                SlackStrategy,
-                SmsStrategy
-            };
-
-            var context = new NotificationContext(EmailStrategy);
-            var pipelineEmailOnlyContext = new NotificationContext(EmailStrategy);
-            var publisher = new NotificationPublisher();
-            var backlogHandler = new BacklogItemNotificationHandler(publisher);
-            var sprintHandler = new SprintNotificationHandler(publisher);
-            var discussionHandler = new DiscussionNotificationHandler(publisher);
-            var pipelineReleaseHandler = new PipelineReleaseNotificationHandler(publisher);
-
-            publisher.Subscribe(new BacklogItemNotificationObserver(context));
-            publisher.Subscribe(new SprintNotificationObserver(context));
-            publisher.Subscribe(new DiscussionNotificationObserver(context));
-            publisher.Subscribe(new PipelineReleaseNotificationObserver(pipelineEmailOnlyContext));
+            var strategyFactory = new NotificationStrategyFactory(
+                new ExternalMailClient(),
+                new SlackSdk(),
+                new SmsSdk());
+            var eventManager = new EventManager();
 
             var userRepository = new FakeUserRepository();
             var sprintRepository = new FakeSprintRepository();
             var backlogRepository = new FakeBacklogItemRepository(sprintRepository);
             var discussionRepository = new FakeDiscussionRepository();
             var pipelineFactory = new PipelineFactory();
-            var pipelineService = new PipelineService(sprintRepository, pipelineFactory, pipelineReleaseHandler);
 
-            var sprintService = new SprintService(sprintRepository, userRepository, sprintHandler, pipelineService);
-            var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, backlogHandler, userRepository);
-            var discussionService = new DiscussionService(discussionRepository, backlogRepository, userRepository, discussionHandler);
+            var allChannels = new[] { ChannelType.Email, ChannelType.Slack, ChannelType.Sms };
+            var emailChannel = new [] { ChannelType.Email };
+            eventManager.Subscribe(NotificationEventNames.ReadyForTesting, new BacklogItemListener(
+                sprintRepository,
+                strategyFactory,
+                [SprintRole.Tester],
+                emailChannel));
+            eventManager.Subscribe(NotificationEventNames.TestFailure, new BacklogItemListener(
+                sprintRepository,
+                strategyFactory,
+                [SprintRole.ScrumMaster],
+                emailChannel));
+            eventManager.Subscribe(NotificationEventNames.ReleaseSuccess, new SprintNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel,
+                [SprintRole.ScrumMaster, SprintRole.ProductOwner]));
+            eventManager.Subscribe(NotificationEventNames.ReleaseFailure, new SprintNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel,
+                [SprintRole.ScrumMaster]));
+            eventManager.Subscribe(NotificationEventNames.ReleaseCancelled, new SprintNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel,
+                [SprintRole.ScrumMaster, SprintRole.ProductOwner]));
+            eventManager.Subscribe(NotificationEventNames.SprintFinished, new SprintNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel,
+                [SprintRole.Developer, SprintRole.Tester, SprintRole.ScrumMaster, SprintRole.ProductOwner]));
+            eventManager.Subscribe(NotificationEventNames.DiscussionCreated, new DiscussionNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel));
+            eventManager.Subscribe(NotificationEventNames.DiscussionReply, new DiscussionNotificationListener(
+                sprintRepository,
+                strategyFactory,
+                emailChannel));
+           
+            var pipelineService = new PipelineService(sprintRepository, pipelineFactory, eventManager);
+            var sprintService = new SprintService(sprintRepository, userRepository, eventManager, pipelineService);
+            var backlogItemService = new BacklogItemService(backlogRepository, sprintRepository, eventManager, userRepository);
+            var discussionService = new DiscussionService(discussionRepository, backlogRepository, eventManager);
 
             var users = userRepository.GetAll();
             var productOwner = users[0];
@@ -104,11 +119,12 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             backlogItemService.StartTesting(backlogItemId);
             backlogItemService.ReturnToTodo(backlogItemId);
 
+            sprintService.Start(backlogSprintId); // Start the sprint to trigger notifications for the discussion
             Console.WriteLine("[Demo] Discussion notifications");
-            var discussion = new DiscussionThread(Guid.NewGuid(), backlogSprintId, "Sprint retrospective");
+            var discussion = new DiscussionThread(Guid.NewGuid(), backlogItemId, "Sprint retrospective");
             var discussionId = discussionService.Create(discussion);
             discussionService.Reply(discussionId, new DiscussionPost(Guid.NewGuid(), scrumMaster, "Mee eens", DateTime.UtcNow));
-
+            
             Console.WriteLine("[Demo] Sprint finished notification");
             sprintService.FinishSprint(backlogSprintId);
 
@@ -128,6 +144,8 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             Console.WriteLine("[Demo] Pipeline cancelled notification");
             var cancelledSprintId = CreateReleaseSprint("Pipeline Cancelled Sprint");
             PrepareFinishedReleaseSprint(cancelledSprintId, "Pipeline Cancelled Flow");
+            sprintService.BeginRelease(cancelledSprintId);
+            sprintService.ReleaseFailed(cancelledSprintId);
             sprintService.CancelRelease(cancelledSprintId);
 
             Console.WriteLine("[Demo] Notification demo completed");

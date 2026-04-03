@@ -30,6 +30,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void MarkReadyForTesting(BacklogItem backlogItem)
         {
             backlogItem.SetReadyForTestingState();
+            
         }
     }
 }

@@ -1,20 +1,19 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Pipeline;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
-using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
     public class PipelineService(
         ISprintRepository sprintRepository,
         IPipelineFactory pipelineFactory,
-        IPipelineReleaseNotificationHandler pipelineReleaseNotificationHandler) : IPipelineService
+        IEventManager eventManager) : IPipelineService
     {
         private readonly ISprintRepository _sprintRepository = sprintRepository;
         private readonly IPipelineFactory _pipelineFactory = pipelineFactory;
-        private readonly IPipelineReleaseNotificationHandler _pipelineReleaseNotificationHandler = pipelineReleaseNotificationHandler;
+        private readonly IEventManager _eventManager = eventManager;
 
         public bool AssignBuildValidationPipeline(Guid sprintId, string pipelineName)
         {
@@ -75,8 +74,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             sprint.ReleaseSucceeded();
             _sprintRepository.Update(sprintId, sprint);
 
-            var recipients = GetRecipientsByRoles(sprintId, SprintRole.ScrumMaster, SprintRole.ProductOwner);
-            _pipelineReleaseNotificationHandler.NotifyPipelineCompletedSuccessfully(sprint.Name, recipients);
+            _eventManager.Notify(NotificationEventNames.ReleaseSuccess, new NotificationEventData
+            {
+                EventType = NotificationEventNames.ReleaseSuccess,
+                SprintId = sprint.Id,
+                Subject = "Pipeline activities successful",
+                Body = $"All pipeline activities for sprint {sprint.Name} were executed successfully."
+            });
             return true;
         }
 
@@ -91,8 +95,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             sprint.ReleaseFailed();
             _sprintRepository.Update(sprintId, sprint);
 
-            var recipients = GetRecipientsByRoles(sprintId, SprintRole.ScrumMaster);
-            _pipelineReleaseNotificationHandler.NotifyPipelineActivityFailed(sprint.Name, recipients);
+            _eventManager.Notify(NotificationEventNames.ReleaseFailure, new NotificationEventData
+            {
+                EventType = NotificationEventNames.ReleaseFailure,
+                SprintId = sprint.Id,
+                Subject = "Pipeline activity failed",
+                Body = $"A pipeline activity failed during the release of sprint {sprint.Name}."
+            });
             return true;
         }
 
@@ -107,8 +116,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             sprint.CancelRelease();
             _sprintRepository.Update(sprintId, sprint);
 
-            var recipients = GetRecipientsByRoles(sprintId, SprintRole.ScrumMaster, SprintRole.ProductOwner);
-            _pipelineReleaseNotificationHandler.NotifyReleaseCancelled(sprint.Name, recipients);
+            _eventManager.Notify(NotificationEventNames.ReleaseCancelled, new NotificationEventData
+            {
+                EventType = NotificationEventNames.ReleaseCancelled,
+                SprintId = sprint.Id,
+                Subject = "Pipeline release cancelled",
+                Body = $"Release of sprint {sprint.Name} has been cancelled."
+            });
             return true;
         }
 
@@ -141,19 +155,5 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
                 : ReleaseFailed(sprintId);
         }
 
-        private List<User> GetRecipientsByRoles(Guid sprintId, params SprintRole[] roles)
-        {
-            var recipientsById = new Dictionary<Guid, User>();
-
-            foreach (var role in roles)
-            {
-                foreach (var user in _sprintRepository.GetMembersByRole(sprintId, role))
-                {
-                    recipientsById[user.Id] = user;
-                }
-            }
-
-            return recipientsById.Values.ToList();
-        }
     }
 }

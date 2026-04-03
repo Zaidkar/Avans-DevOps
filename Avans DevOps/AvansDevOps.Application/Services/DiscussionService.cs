@@ -1,4 +1,4 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 
@@ -7,13 +7,11 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
     public class DiscussionService(
         IDiscussionRepository discussionRepository,
         IBacklogItemRepository backlogItemRepository,
-        IUserRepository userRepository,
-        IDiscussionNotificationHandler discussionNotificationHandler) : IDiscussionService
+        IEventManager eventManager) : IDiscussionService
     {
         private readonly IDiscussionRepository _discussionRepository = discussionRepository;
         private readonly IBacklogItemRepository _backlogItemRepository = backlogItemRepository;
-        private readonly IUserRepository _userRepository = userRepository;
-        private readonly IDiscussionNotificationHandler _discussionNotificationHandler = discussionNotificationHandler;
+        private readonly IEventManager _eventManager = eventManager;
 
         public List<(Guid Id, DiscussionThread Thread)> GetAll()
         {
@@ -29,7 +27,17 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
         {
             EnsureBacklogItemIsOpen(thread.BacklogItemId);
             var id = _discussionRepository.Create(thread);
-            _discussionNotificationHandler.NotifyDiscussionCreated(thread.Subject, _userRepository.GetAll());
+            var sprint = _backlogItemRepository.GetSprintForBacklogItem(thread.BacklogItemId);
+            if (sprint != null)
+            {
+                _eventManager.Notify(NotificationEventNames.DiscussionCreated, new NotificationEventData
+                {
+                    EventType = NotificationEventNames.DiscussionCreated,
+                    SprintId = sprint.Id,
+                    Subject = "Discussion created",
+                    Body = $"Er is een nieuwe discussie gestart over {thread.Subject}"
+                });
+            }
             return id;
         }
 
@@ -50,7 +58,17 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             thread.AddPost(post);
             _discussionRepository.Update(discussionId, thread);
 
-            _discussionNotificationHandler.NotifyDiscussionReply(thread.Subject, _userRepository.GetAll());
+            var sprint = _backlogItemRepository.GetSprintForBacklogItem(thread.BacklogItemId);
+            if (sprint != null)
+            {
+                _eventManager.Notify(NotificationEventNames.DiscussionReply, new NotificationEventData
+                {
+                    EventType = NotificationEventNames.DiscussionReply,
+                    SprintId = sprint.Id,
+                    Subject = "Discussion reply",
+                    Body = $"Er is een nieuwe reactie geplaatst over {thread.Subject}:{post.Author} zei: {post.Message}"
+                });
+            }
             return true;
         }
 
@@ -77,5 +95,6 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             var backlogItem = _backlogItemRepository.GetById(backlogItemId);
             return backlogItem is not null && backlogItem.IsDone();
         }
+
     }
 }

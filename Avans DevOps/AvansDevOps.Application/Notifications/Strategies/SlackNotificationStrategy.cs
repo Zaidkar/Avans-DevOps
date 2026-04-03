@@ -1,22 +1,18 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Contracts;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Providers;
+using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
-namespace Avans_DevOps.AvansDevOps.Application.Notifications.Strategies
+namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
+
+public class SlackNotificationStrategy(SlackSdk slackSdk) : INotificationStrategy
 {
-    public class SlackNotificationStrategy(ISlackProvider slackProvider) : INotificationStrategy
+    private readonly SlackSdk _slackSdk = slackSdk;
+
+    public void Execute(NotificationMessage message, List<SprintMember> recipients)
     {
-        private readonly ISlackProvider _slackProvider = slackProvider;
-
-        public void Send(NotificationMessage message, List<User> recipients)
+        for (var index = 0; index < recipients.Count; index++)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [SlackNotificationStrategy] Send -> {recipients.Count} recipient(s)");
-
-            for (var index = 0; index < recipients.Count; index++)
-            {
-                _slackProvider.SendSlack($"#recipient-{index + 1}", message.Body);
-            }
+            _slackSdk.SendSlack($"#recipient-{index + 1}", message.Body);
         }
     }
 }

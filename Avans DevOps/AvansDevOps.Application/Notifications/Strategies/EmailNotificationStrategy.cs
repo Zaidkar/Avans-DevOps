@@ -1,23 +1,18 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Contracts;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Providers;
+using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
-namespace Avans_DevOps.AvansDevOps.Application.Notifications.Strategies
+namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
+
+public class EmailNotificationStrategy(ExternalMailClient mailClient) : INotificationStrategy
 {
-    public class EmailNotificationStrategy(IMailProvider mailProvider) : INotificationStrategy
+    private readonly ExternalMailClient _mailClient = mailClient;
+
+    public void Execute(NotificationMessage message, List<SprintMember> recipients)
     {
-        private readonly IMailProvider _mailProvider = mailProvider;
-
-        public void Send(NotificationMessage message, List<User> recipients)
+        foreach (var recipient in recipients)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [EmailNotificationStrategy] Send -> {recipients.Count} recipient(s)");
-
-            foreach (var recipient in recipients)
-            {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [EmailNotificationStrategy] Sending email to {recipient.Email}...");
-                _mailProvider.SendEmail(recipient.Email, message.Subject, message.Body);
-            }
+            _mailClient.SendMail(recipient.User.Email, message.Subject, message.Body);
         }
     }
 }

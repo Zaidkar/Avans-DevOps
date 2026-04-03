@@ -1,5 +1,4 @@
-using System.Runtime.CompilerServices;
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Application.Services;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
@@ -12,11 +11,11 @@ public class BacklogItemServiceTests
 {
     private readonly Mock<IBacklogItemRepository> _backlogRepo = new();
     private readonly Mock<ISprintRepository> _sprintRepo = new();
-    private readonly Mock<IBacklogItemNotificationHandler> _notifications = new();
+    private readonly Mock<IEventManager> _eventManager = new();
     private readonly Mock<IUserRepository> _userRepo = new();
 
     private BacklogItemService CreateService() =>
-        new(_backlogRepo.Object, _sprintRepo.Object, _notifications.Object, _userRepo.Object);
+        new(_backlogRepo.Object, _sprintRepo.Object, _eventManager.Object, _userRepo.Object);
 
     private static BacklogItem CreateItem(Guid id)
     {
@@ -34,10 +33,9 @@ public class BacklogItemServiceTests
     private static SprintMember CreateMember(string name, SprintRole role) =>
         new(Guid.NewGuid(), CreateUser(name), role);
 
-    private static List<User> GetMembersByRole(Sprint sprint, SprintRole role) =>
+    private static List<SprintMember> GetMembersByRole(Sprint sprint, SprintRole role) =>
         sprint.Members
             .Where(member => member.SprintRole == role)
-            .Select(member => member.User)
             .ToList();
 
     // 🔹 1. Alle null backlogItem guards in één test
@@ -56,6 +54,7 @@ public class BacklogItemServiceTests
         Assert.False(service.ApproveDone(id));
         Assert.False(service.ReturnToReadyForTesting(id));
         Assert.False(service.ReturnToTodo(id));
+        Assert.False(service.AssignDeveloper(id, Guid.NewGuid()));
     }
 
     // 🔹 2. Sprint-required methods
@@ -77,7 +76,7 @@ public class BacklogItemServiceTests
 
     // 🔹 3. Happy flow: testers notificatie
     [Fact]
-    public void MarkReadyForTesting_NotifiesTesters()
+    public void TC_12_FR_13_MarkReadyForTesting_NotifiesTesters()
     {
         var id = Guid.NewGuid();
         var sprintId = Guid.NewGuid();
@@ -96,12 +95,16 @@ public class BacklogItemServiceTests
         var result = service.MarkReadyForTesting(id);
 
         Assert.True(result);
-        _notifications.Verify(x => x.NotifyReadyForTesting(item.Title, testers), Times.Once);
+        _eventManager.Verify(
+            x => x.Notify(
+                NotificationEventNames.ReadyForTesting,
+                It.Is<NotificationEventData>(data => data.SprintId == sprintId && data.Body.Contains(item.Title))),
+            Times.Once);
     }
 
     // 🔹 4. ReturnToReadyForTesting notificatie
     [Fact]
-    public void ReturnToReadyForTesting_NotifiesTesters()
+    public void TC_14_FR_13_ReturnToReadyForTesting_NotifiesTesters()
     {
         var id = Guid.NewGuid();
         var sprintId = Guid.NewGuid();
@@ -124,12 +127,16 @@ public class BacklogItemServiceTests
         var result = service.ReturnToReadyForTesting(id);
 
         Assert.True(result);
-        _notifications.Verify(x => x.NotifyReadyForTesting(item.Title, testers), Times.Once);
+        _eventManager.Verify(
+            x => x.Notify(
+                NotificationEventNames.ReadyForTesting,
+                It.Is<NotificationEventData>(data => data.SprintId == sprintId && data.Body.Contains(item.Title))),
+            Times.Once);
     }
 
     // 🔹 5. ReturnToTodo notificatie
     [Fact]
-    public void ReturnToTodo_NotifiesScrumMaster()
+    public void TC_15_FR_14_ReturnToTodo_NotifiesScrumMaster()
     {
         var id = Guid.NewGuid();
         var sprintId = Guid.NewGuid();
@@ -151,21 +158,28 @@ public class BacklogItemServiceTests
         var result = service.ReturnToTodo(id);
 
         Assert.True(result);
-        _notifications.Verify(x => x.NotifyBackToTodo(item.Title, item.LastDeveloper, scrumMasters), Times.Once);
+        _eventManager.Verify(
+            x => x.Notify(
+                NotificationEventNames.TestFailure,
+                It.Is<NotificationEventData>(data => data.SprintId == sprintId && data.Body.Contains(item.Title))),
+            Times.Once);
     }
 
     // 🔹 6. AssignDeveloper edge cases
     [Fact]
-    public void AssignDeveloper_ReturnsFalse_WhenInvalid()
+    public void AssignDeveloper_ReturnsFalse_WhenUserDoesNotExist()
     {
         var backlogItemId = Guid.NewGuid();
         var userId = Guid.NewGuid();
+        var item = new BacklogItem(backlogItemId, "Item", "Desc", 2);
 
-        _backlogRepo.Setup(x => x.GetById(backlogItemId)).Returns((BacklogItem?)null);
+        _backlogRepo.Setup(x => x.GetById(backlogItemId)).Returns(item);
+        _userRepo.Setup(x => x.GetById(userId)).Returns((User?)null);
 
         var service = CreateService();
 
         Assert.False(service.AssignDeveloper(backlogItemId, userId));
+        _backlogRepo.Verify(x => x.Update(It.IsAny<Guid>(), It.IsAny<BacklogItem>()), Times.Never);
     }
 
     [Fact]
@@ -186,5 +200,8 @@ public class BacklogItemServiceTests
         var result = service.AssignDeveloper(backlogItemId, userId);
 
         Assert.True(result);
+        Assert.Equal(userId, item.AssignedDeveloper?.Id);
+        _userRepo.Verify(x => x.GetById(userId), Times.Once);
+        _backlogRepo.Verify(x => x.Update(backlogItemId, item), Times.Once);
     }
 }

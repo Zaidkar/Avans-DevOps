@@ -1,15 +1,14 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
-using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Services
 {
-    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IBacklogItemNotificationHandler backlogNotificationHandler, IUserRepository userRepository) : IBacklogItemService
+    public class BacklogItemService(IBacklogItemRepository backlogItemRepository, ISprintRepository sprintRepository, IEventManager eventManager, IUserRepository userRepository) : IBacklogItemService
     {
         private readonly IBacklogItemRepository _backlogItemRepository = backlogItemRepository;
         private readonly ISprintRepository _sprintRepository = sprintRepository;
-        private readonly IBacklogItemNotificationHandler _backlogNotificationHandler = backlogNotificationHandler;
+        private readonly IEventManager _eventManager = eventManager;
         private readonly IUserRepository _userRepository = userRepository;
 
         public List<(Guid Id, BacklogItem Item)> GetAll()
@@ -74,8 +73,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             backlogItem.MarkReadyForTesting();
             _backlogItemRepository.Update(id, backlogItem);
 
-            var recipients = _sprintRepository.GetMembersByRole(sprint.Id, SprintRole.Tester);
-            _backlogNotificationHandler.NotifyReadyForTesting(backlogItem.Title, recipients);
+            _eventManager.Notify(NotificationEventNames.ReadyForTesting, new NotificationEventData
+            {
+                EventType = NotificationEventNames.ReadyForTesting,
+                SprintId = sprint.Id,
+                Subject = "Backlog item ready for testing",
+                Body = $"Backlogitem {backlogItem.Title} is ready for testing"
+            });
             return true;
         }
 
@@ -127,8 +131,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
                 return false;
             }
             backlogItem.ReturnToReadyForTesting();
-            var recipients = _sprintRepository.GetMembersByRole(sprint.Id, SprintRole.Tester);
-            _backlogNotificationHandler.NotifyReadyForTesting(backlogItem.Title, recipients);
+            _eventManager.Notify(NotificationEventNames.ReadyForTesting, new NotificationEventData
+            {
+                EventType = NotificationEventNames.ReadyForTesting,
+                SprintId = sprint.Id,
+                Subject = "Backlog item ready for testing",
+                Body = $"Backlogitem {backlogItem.Title} is ready for testing"
+            });
             return _backlogItemRepository.Update(id, backlogItem);
 
         }
@@ -157,8 +166,13 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
             backlogItem.ReturnToTodo();
             _backlogItemRepository.Update(id, backlogItem);
 
-            var recipients = _sprintRepository.GetMembersByRole(sprint.Id, SprintRole.ScrumMaster);
-            _backlogNotificationHandler.NotifyBackToTodo(backlogItem.Title, assignedDeveloper, recipients);
+            _eventManager.Notify(NotificationEventNames.TestFailure, new NotificationEventData
+            {
+                EventType = NotificationEventNames.TestFailure,
+                SprintId = sprint.Id,
+                Subject = "Backlog item rejected after testing",
+                Body = $"Backlogitem {backlogItem.Title} developed door {assignedDeveloper.Name} is teruggezet naar todo"
+            });
             return true;
         }
 
