@@ -2,9 +2,9 @@ using Avans_DevOps.AvansDevOps.Application.Pipeline;
 using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
 using Avans_DevOps.AvansDevOps.Application.Services;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
@@ -15,11 +15,10 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [NotificationDemoRunner] Run");
 
-            var mailProvider = new SendGridMailAdapter(new ExternalMailClient());
-            var slackProvider = new SlackApiAdapter(new SlackSdk());
-            var smsProvider = new TwilioSmsAdapter(new SmsSdk());
-
-            var channelFactory = new NotificationChannelFactory(mailProvider, slackProvider, smsProvider);
+            var strategyFactory = new NotificationStrategyFactory(
+                new ExternalMailClient(),
+                new SlackSdk(),
+                new SmsSdk());
             var eventManager = new EventManager();
 
             var userRepository = new FakeUserRepository();
@@ -32,41 +31,41 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Services
             var emailChannel = new [] { ChannelType.Email };
             eventManager.Subscribe(NotificationEventNames.ReadyForTesting, new BacklogItemListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 [SprintRole.Tester],
                 emailChannel));
             eventManager.Subscribe(NotificationEventNames.TestFailure, new BacklogItemListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 [SprintRole.ScrumMaster],
                 emailChannel));
             eventManager.Subscribe(NotificationEventNames.ReleaseSuccess, new SprintNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel,
                 [SprintRole.ScrumMaster, SprintRole.ProductOwner]));
             eventManager.Subscribe(NotificationEventNames.ReleaseFailure, new SprintNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel,
                 [SprintRole.ScrumMaster]));
             eventManager.Subscribe(NotificationEventNames.ReleaseCancelled, new SprintNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel,
                 [SprintRole.ScrumMaster, SprintRole.ProductOwner]));
             eventManager.Subscribe(NotificationEventNames.SprintFinished, new SprintNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel,
                 [SprintRole.Developer, SprintRole.Tester, SprintRole.ScrumMaster, SprintRole.ProductOwner]));
             eventManager.Subscribe(NotificationEventNames.DiscussionCreated, new DiscussionNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel));
             eventManager.Subscribe(NotificationEventNames.DiscussionReply, new DiscussionNotificationListener(
                 sprintRepository,
-                channelFactory,
+                strategyFactory,
                 emailChannel));
            
             var pipelineService = new PipelineService(sprintRepository, pipelineFactory, eventManager);

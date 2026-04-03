@@ -1,11 +1,10 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Adapters;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
-using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Providers;
 using Moq;
 
 namespace AvansDevOps.Tests;
@@ -51,10 +50,7 @@ public class NotificationConsoleTests
         var sprintRepository = new Mock<ISprintRepository>();
         sprintRepository.Setup(x => x.GetMembersByRole(sprintId, SprintRole.Tester)).Returns(new List<SprintMember> { testerMember });
 
-        var mailProvider = new SendGridMailAdapter(new ExternalMailClient());
-        var slackProvider = new Mock<ISlackProvider>();
-        var smsProvider = new Mock<ISmsProvider>();
-        var factory = new NotificationChannelFactory(mailProvider, slackProvider.Object, smsProvider.Object);
+        var factory = new NotificationStrategyFactory(new ExternalMailClient(), new SlackSdk(), new SmsSdk());
         var eventManager = new EventManager();
         eventManager.Subscribe(
             NotificationEventNames.ReadyForTesting,
@@ -82,10 +78,7 @@ public class NotificationConsoleTests
         var sprintRepository = new Mock<ISprintRepository>();
         sprintRepository.Setup(x => x.GetMembersByRole(sprintId, SprintRole.ScrumMaster)).Returns(new List<SprintMember> { scrumMasterMember });
 
-        var mailProvider = new SendGridMailAdapter(new ExternalMailClient());
-        var slackProvider = new Mock<ISlackProvider>();
-        var smsProvider = new Mock<ISmsProvider>();
-        var factory = new NotificationChannelFactory(mailProvider, slackProvider.Object, smsProvider.Object);
+        var factory = new NotificationStrategyFactory(new ExternalMailClient(), new SlackSdk(), new SmsSdk());
         var eventManager = new EventManager();
         eventManager.Subscribe(
             NotificationEventNames.ReleaseFailure,
@@ -113,9 +106,9 @@ public class NotificationConsoleTests
         var teamSprintMember = CreateMember(teamMember, SprintRole.Developer);
         sprintRepository.Setup(x => x.GetMembers(sprintId)).Returns(new List<SprintMember> { teamSprintMember });
 
-        var emailChannel = new Mock<INotificationChannel>();
-        var slackChannel = new Mock<INotificationChannel>();
-        var factory = new Mock<INotificationChannelFactory>();
+        var emailChannel = new Mock<INotificationStrategy>();
+        var slackChannel = new Mock<INotificationStrategy>();
+        var factory = new Mock<INotificationStrategyFactory>();
         factory.Setup(x => x.Create(ChannelType.Email)).Returns(emailChannel.Object);
         factory.Setup(x => x.Create(ChannelType.Slack)).Returns(slackChannel.Object);
 
@@ -133,7 +126,7 @@ public class NotificationConsoleTests
             }));
 
         Assert.Equal(string.Empty, output);
-        emailChannel.Verify(x => x.Send(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
-        slackChannel.Verify(x => x.Send(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
+        emailChannel.Verify(x => x.Execute(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
+        slackChannel.Verify(x => x.Execute(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
     }
 }

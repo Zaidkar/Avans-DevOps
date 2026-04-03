@@ -1,4 +1,5 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -7,12 +8,12 @@ namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 public class BacklogItemListener(
     ISprintRepository sprintRepository,
-    INotificationChannelFactory channelFactory,
+    INotificationStrategyFactory strategyFactory,
     IReadOnlyCollection<SprintRole> roles,
     IReadOnlyCollection<ChannelType> channels) : IEventListener
 {
     private readonly ISprintRepository _sprintRepository = sprintRepository;
-    private readonly INotificationChannelFactory _channelFactory = channelFactory;
+    private readonly INotificationStrategyFactory _strategyFactory = strategyFactory;
     private readonly IReadOnlyCollection<SprintRole> _roles = roles;
     private readonly IReadOnlyCollection<ChannelType> _channels = channels;
 
@@ -66,9 +67,12 @@ public class BacklogItemListener(
             Body = data.Body
         };
 
+        var context = new NotificationStrategyContext();
+
         foreach (var channelType in _channels)
         {
-            _channelFactory.Create(channelType).Send(message, recipientsById);
+            context.SetStrategy(_strategyFactory.Create(channelType));
+            context.ExecuteStrategy(message, recipientsById);
         }
     }
 }
