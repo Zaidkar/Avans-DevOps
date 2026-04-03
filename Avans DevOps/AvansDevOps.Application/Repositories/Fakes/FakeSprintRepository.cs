@@ -46,7 +46,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
             return sprint != null ? sprint.Members.ToList() : [];
         }
 
-        public List<User> GetMembersByRole(Guid sprintId, SprintRole role)
+        public List<SprintMember> GetMembersByRole(Guid sprintId, SprintRole role)
         {
             var sprint = GetById(sprintId);
             if (sprint == null)
@@ -54,7 +54,6 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories.Fakes
 
             return sprint.Members
                 .Where(member => member.SprintRole == role)
-                .Select(member => member.User)
                 .ToList();
         }
 

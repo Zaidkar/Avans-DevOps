@@ -11,7 +11,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Repositories
         bool Update(Guid id, Sprint sprint);
         bool Delete(Guid id);
         List<SprintMember> GetMembers(Guid sprintId);
-        List<User> GetMembersByRole(Guid sprintId, SprintRole role);
+        List<SprintMember> GetMembersByRole(Guid sprintId, SprintRole role);
         
     }
 }

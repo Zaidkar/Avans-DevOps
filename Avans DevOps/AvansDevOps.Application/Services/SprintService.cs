@@ -1,4 +1,4 @@
-using Avans_DevOps.AvansDevOps.Application.Notifications.Handlers;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
@@ -9,12 +9,12 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
     public class SprintService(
         ISprintRepository sprintRepository,
         IUserRepository userRepository,
-        ISprintNotificationHandler sprintNotificationHandler,
+        IEventManager eventManager,
         IPipelineService pipelineService) : ISprintService
     {
         private readonly ISprintRepository _sprintRepository = sprintRepository;
         private readonly IUserRepository _userRepository = userRepository;
-        private readonly ISprintNotificationHandler _sprintNotificationHandler = sprintNotificationHandler;
+        private readonly IEventManager _eventManager = eventManager;
         private readonly IPipelineService _pipelineService = pipelineService;
 
         public List<Sprint> GetAll()
@@ -168,10 +168,21 @@ namespace Avans_DevOps.AvansDevOps.Application.Services
                 return false;
             }
 
-            // Notify sprint members instead of all users
-            var members = _sprintRepository.GetMembers(id);
-            var recipients = members.Select(m => m.User).ToList();
-            _sprintNotificationHandler.NotifySprintFinished(sprint.Name, recipients);
+            sprint.Finish();
+            var updated = _sprintRepository.Update(id, sprint);
+            if (!updated)
+            {
+                return false;
+            }
+
+            _eventManager.Notify(NotificationEventNames.SprintFinished, new NotificationEventData
+            {
+                EventType = NotificationEventNames.SprintFinished,
+                SprintId = sprint.Id,
+                Subject = "Sprint finished",
+                Body = $"Sprint {sprint.Name} has reached the finished state."
+            });
+
             return true;
         }
 
