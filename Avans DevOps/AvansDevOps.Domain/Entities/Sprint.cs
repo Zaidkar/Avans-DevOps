@@ -1,9 +1,6 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Avans_DevOps.AvansDevOps.Domain.States.SprintStates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
@@ -96,9 +93,13 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         public bool ExecuteReleasePipeline()
         {
-            var executionResult = Pipeline.Execute();
+          
+            var executionResult = Pipeline?.Execute();
             // return executionResult.Succeeded;
-
+            if (executionResult is null)
+            {
+                throw new InvalidOperationException("Execution result is null.");
+            }
             return executionResult.Succeeded
                 ? SendNotification(NotificationEventNames.ReleaseSuccess, new NotificationEventData
                 {
@@ -185,8 +186,8 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         }
 
 
-        internal bool IsReleaseSprint() => SprintGoalType == global::Avans_DevOps.AvansDevOps.Domain.Enum.SprintGoalType.Release;
-        internal bool IsReviewSprint() => SprintGoalType == global::Avans_DevOps.AvansDevOps.Domain.Enum.SprintGoalType.Review;
+        internal bool IsReleaseSprint() => SprintGoalType == SprintGoalType.Release;
+        internal bool IsReviewSprint() => SprintGoalType ==SprintGoalType.Review;
         internal bool HasPipeline() => Pipeline is not null;
         internal void AssignPipelineInternal(PipelineDefinition pipeline) => Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         internal bool HasReviewSummary() => !string.IsNullOrWhiteSpace(ReviewSummaryDocumentPath);
