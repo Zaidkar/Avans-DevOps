@@ -4,11 +4,13 @@ using Avans_DevOps.AvansDevOps.Domain.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
     public class BacklogItem : IBacklogWorkItemComponent
     {
+        private readonly IEventManager _eventManager;
         private readonly List<Activity> _activities = new();
         private readonly List<ScmReference> _scmReferences = new();
 
@@ -27,7 +29,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public IReadOnlyCollection<ScmReference> ScmReferences => _scmReferences.AsReadOnly();
         public string CurrentState => _state.Name;
 
-        public BacklogItem(Guid id, string title, string description, int storyPoints)
+        public BacklogItem(Guid id, string title, string description, int storyPoints, IEventManager eventManager)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Backlog item id cannot be empty.", nameof(id));
@@ -37,13 +39,13 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
             if (storyPoints < 0)
                 throw new ArgumentException("Story points cannot be negative.", nameof(storyPoints));
-
             Id = id;
             Title = title;
             Description = description ?? string.Empty;
             StoryPoints = storyPoints;
-
+            _eventManager = eventManager;
             _state = new TodoBacklogItemState();
+            
         }
         public void AddScmReference(ScmReference scmReference)
         {
@@ -136,6 +138,12 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void UnassignDeveloperInternal()
         {
             AssignedDeveloper = null;
+        }
+
+        internal void SendNotification(String eventType, NotificationEventData data)
+        {
+            if (string.IsNullOrWhiteSpace(eventType)) throw new ArgumentException("Event Type is required.",nameof(eventType));
+            _eventManager.Notify(eventType, data);
         }
 
         internal void AddActivityInternal(Activity activity)

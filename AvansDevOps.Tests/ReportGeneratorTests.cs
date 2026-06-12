@@ -1,4 +1,4 @@
-using Avans_DevOps.AvansDevOps.Application.Repositories;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Reports.Services;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -8,30 +8,6 @@ namespace AvansDevOps.Tests;
 
 public class ReportGeneratorTests
 {
-    [Fact]
-    public void Generate_Throws_WhenSprintDoesNotExist()
-    {
-        var sprintRepository = new Mock<ISprintRepository>();
-        var backlogRepository = new Mock<IBacklogItemRepository>();
-        sprintRepository.Setup(x => x.GetById(It.IsAny<Guid>())).Returns((Sprint?)null);
-
-        var generator = new ReportGenerator(
-            sprintRepository.Object,
-            backlogRepository.Object,
-            new ReportMetricsCalculator());
-
-        var action = () => generator.Generate(
-            Guid.NewGuid(),
-            "Avans",
-            "Project X",
-            "1.0",
-            "Logo",
-            "Sprintrapport",
-            "Extra");
-
-        Assert.Throws<InvalidOperationException>(action);
-    }
-
     [Fact]
     public void Generate_IncludesExpectedSectionsAndMetadata()
     {
@@ -78,9 +54,7 @@ public class ReportGeneratorTests
 
     private static (ReportGenerator Generator, Sprint Sprint) CreateGeneratorWithSprintAndItems()
     {
-        var sprintRepository = new Mock<ISprintRepository>();
-        var backlogRepository = new Mock<IBacklogItemRepository>();
-
+        var eventManager = new EventManager();
         var developer = new User
         {
             Id = Guid.NewGuid(),
@@ -93,28 +67,20 @@ public class ReportGeneratorTests
             "Sprint 1",
             DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)),
             DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2)),
-            SprintGoalType.Review);
+            SprintGoalType.Review, eventManager);
 
-        sprint.AddMember(new SprintMember(Guid.NewGuid(), developer, SprintRole.Developer));
+        sprint.AddMember(developer, SprintRole.Developer);
 
         var doneItem = CreateDoneItem("Feature A", 3, developer);
         var todoItem = CreateTodoItem("Feature B", 5, developer);
 
-        sprint.AddBacklogItem(doneItem.Id);
-        sprint.AddBacklogItem(todoItem.Id);
+        sprint.AddBacklogItem(doneItem);
+        sprint.AddBacklogItem(todoItem);
 
-        sprintRepository.Setup(x => x.GetById(sprint.Id)).Returns(sprint);
-        backlogRepository
-            .Setup(x => x.GetAll())
-            .Returns(new List<(Guid Id, BacklogItem Item)>
-            {
-                (doneItem.Id, doneItem),
-                (todoItem.Id, todoItem)
-            });
+        
 
         var generator = new ReportGenerator(
-            sprintRepository.Object,
-            backlogRepository.Object,
+            sprint,
             new ReportMetricsCalculator());
 
         return (generator, sprint);
@@ -122,7 +88,8 @@ public class ReportGeneratorTests
 
     private static BacklogItem CreateDoneItem(string title, int storyPoints, User developer)
     {
-        var item = new BacklogItem(Guid.NewGuid(), title, title, storyPoints);
+        var eventManager = new EventManager();
+        var item = new BacklogItem(Guid.NewGuid(), title, title, storyPoints, eventManager);
         item.AssignDeveloper(developer);
         item.MarkReadyForTesting();
         item.StartTesting();
@@ -133,7 +100,8 @@ public class ReportGeneratorTests
 
     private static BacklogItem CreateTodoItem(string title, int storyPoints, User developer)
     {
-        var item = new BacklogItem(Guid.NewGuid(), title, title, storyPoints);
+        var eventManager = new EventManager();
+        var item = new BacklogItem(Guid.NewGuid(), title, title, storyPoints, eventManager);
         item.AssignDeveloper(developer);
         return item;
     }

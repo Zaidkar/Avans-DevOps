@@ -7,27 +7,25 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
     public class Project
     {
         private readonly List<BacklogItem> _productBacklog = new();
+        public IReadOnlyList<BacklogItem> ProductBacklog => _productBacklog;
         private readonly List<Sprint> _sprints = new();
 
-        public Guid Id { get; }
+        // public Guid Id { get; }
         public string Name { get; private set; }
         public string Description { get; private set; }
-        public User ProductOwner { get; private set; }
+        public SprintMember? ProductOwner { get; private set; }
+        public SprintMember? ScrumMaster { get; private set; }
+        public List<SprintMember>? Developers { get; private set; }
+        public List<SprintMember>? Testers { get; private set; }
 
-        public IReadOnlyCollection<BacklogItem> ProductBacklog => _productBacklog.AsReadOnly();
-        public IReadOnlyCollection<Sprint> Sprints => _sprints.AsReadOnly();
-
-        public Project(Guid id, string name, string description, User productOwner)
+        public Project(string name, string description, SprintMember projectCreator)
         {
-            if (id == Guid.Empty)
-                throw new ArgumentException("Project id cannot be empty.", nameof(id));
-
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Project name cannot be empty.", nameof(name));
 
-            ProductOwner = productOwner ?? throw new ArgumentNullException(nameof(productOwner));
+            ProductOwner = projectCreator ?? throw new ArgumentNullException(nameof(projectCreator));
 
-            Id = id;
+            
             Name = name;
             Description = description ?? string.Empty;
         }
@@ -45,7 +43,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             Description = description ?? string.Empty;
         }
 
-        public void ChangeProductOwner(User productOwner)
+        public void ChangeProductOwner(SprintMember productOwner)
         {
             ProductOwner = productOwner ?? throw new ArgumentNullException(nameof(productOwner));
         }

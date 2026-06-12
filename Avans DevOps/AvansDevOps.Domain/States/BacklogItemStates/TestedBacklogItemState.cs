@@ -1,5 +1,6 @@
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using System;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
 {
@@ -19,6 +20,11 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void ReturnToReadyForTesting(BacklogItem backlogItem)
         {
             backlogItem.SetReadyForTestingState();
+            backlogItem.SendNotification(NotificationEventNames.ReadyForTesting, new NotificationEventData
+            {
+                Subject = "Backlog item ready for testing",
+                Body = $"Backlog item {backlogItem.Title} is ready for testing"
+            });
         }
 
         public override void ReturnToTodo(BacklogItem backlogItem)

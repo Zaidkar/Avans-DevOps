@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 {
@@ -29,7 +30,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             throw InvalidAction(nameof(ChangePlanning));
         }
 
-        public virtual void AddMember(Sprint sprint, SprintMember member)
+        public virtual void AddMember(Sprint sprint, User user, SprintRole sprintRole)
         {
             throw InvalidAction(nameof(AddMember));
         }
@@ -39,12 +40,12 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             throw InvalidAction(nameof(RemoveMember));
         }
 
-        public virtual void AddBacklogItem(Sprint sprint, Guid backlogItemId)
+        public virtual void AddBacklogItem(Sprint sprint, BacklogItem backlogItem)
         {
             throw InvalidAction(nameof(AddBacklogItem));
         }
 
-        public virtual void RemoveBacklogItem(Sprint sprint, Guid backlogItemId)
+        public virtual void RemoveBacklogItem(Sprint sprint, BacklogItem backlogItem)
         {
             throw InvalidAction(nameof(RemoveBacklogItem));
         }

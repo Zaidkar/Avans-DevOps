@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -11,22 +12,26 @@ namespace AvansDevOps.Tests
     {
         private static Sprint CreateReleaseSprint()
         {
+            var eventManager = new EventManager();
             return new Sprint(
                 Guid.NewGuid(),
                 "Release Sprint",
-                new DateOnly(2026, 1, 1),
-                new DateOnly(2026, 1, 14),
-                SprintGoalType.Release);
+                new DateOnly(2026, 3, 1),
+                new DateOnly(2026, 3, 14),
+                SprintGoalType.Release,
+                eventManager);
         }
 
         private static Sprint CreateReviewSprint()
         {
+            var eventManager = new EventManager();
             return new Sprint(
                 Guid.NewGuid(),
                 "Review Sprint",
-                new DateOnly(2026, 2, 1),
-                new DateOnly(2026, 2, 14),
-                SprintGoalType.Review);
+                new DateOnly(2026, 4, 1),
+                new DateOnly(2026, 4, 14),
+                SprintGoalType.Review,
+                eventManager);
         }
 
         private static PipelineDefinition CreatePipeline()
@@ -34,33 +39,35 @@ namespace AvansDevOps.Tests
             return new PipelineDefinition(Guid.NewGuid(), "Release Pipeline");
         }
 
-        private static SprintMember CreateMember(string name, SprintRole role)
+        private static User CreateUser(string name)
         {
-            return new SprintMember(
-                Guid.NewGuid(),
-                new User
-                {
-                    Id = Guid.NewGuid(),
-                    Name = name,
-                    Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
-                },
-                role);
+            return new User
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
+            };
         }
 
+        private static BacklogItem CreateBacklogItem()
+        {
+            var eventManager = new EventManager();
+            return new BacklogItem(Guid.NewGuid(), "Backlog item", "Description", 5,eventManager);
+        }
         [Fact]
         public void TC_05_FR_06_FR_07_CreatedSprint_IsMutable()
         {
             var sprint = CreateReleaseSprint();
-            var backlogItemId = Guid.NewGuid();
+            var backlogItem = CreateBacklogItem();
 
             sprint.Rename("Sprint 1");
             sprint.ChangePlanning(new DateOnly(2026, 1, 2), new DateOnly(2026, 1, 15));
-            sprint.AddMember(CreateMember("Dev One", SprintRole.Developer));
-            sprint.AddBacklogItem(backlogItemId);
+            sprint.AddMember(CreateUser("Dev One"), SprintRole.Developer);
+            sprint.AddBacklogItem(backlogItem);
             sprint.AssignPipeline(CreatePipeline());
 
             Assert.Equal("Sprint 1", sprint.Name);
-            Assert.Contains(backlogItemId, sprint.BacklogItemIds);
+            Assert.Contains(backlogItem, sprint.BacklogItems);
             Assert.Single(sprint.Members);
             Assert.NotNull(sprint.Pipeline);
         }
@@ -72,7 +79,7 @@ namespace AvansDevOps.Tests
             sprint.Start();
 
             Assert.Throws<InvalidOperationException>(() => sprint.Rename("New name"));
-            Assert.Throws<InvalidOperationException>(() => sprint.AddBacklogItem(Guid.NewGuid()));
+            Assert.Throws<InvalidOperationException>(() => sprint.AddBacklogItem(CreateBacklogItem()));
         }
 
         [Fact]
@@ -80,10 +87,10 @@ namespace AvansDevOps.Tests
         {
             var sprint = CreateReleaseSprint();
 
-            sprint.AddMember(CreateMember("Scrum Master 1", SprintRole.ScrumMaster));
+            sprint.AddMember(CreateUser("Scrum Master 1"), SprintRole.ScrumMaster);
 
             Assert.Throws<InvalidOperationException>(() =>
-                sprint.AddMember(CreateMember("Scrum Master 2", SprintRole.ScrumMaster)));
+                sprint.AddMember(CreateUser("Scrum Master 2"), SprintRole.ScrumMaster));
         }
 
         [Fact]
@@ -92,16 +99,14 @@ namespace AvansDevOps.Tests
             var sprint = CreateReleaseSprint();
             var userId = Guid.NewGuid();
 
-            sprint.AddMember(new SprintMember(
-                Guid.NewGuid(),
+            sprint.AddMember(
                 new User { Id = userId, Name = "Dev", Email = "dev@avans.dev" },
-                SprintRole.Developer));
+                SprintRole.Developer);
 
             Assert.Throws<InvalidOperationException>(() =>
-                sprint.AddMember(new SprintMember(
-                    Guid.NewGuid(),
+                sprint.AddMember(
                     new User { Id = userId, Name = "Dev Duplicate", Email = "dev2@avans.dev" },
-                    SprintRole.Tester)));
+                    SprintRole.Tester));
         }
 
         [Fact]

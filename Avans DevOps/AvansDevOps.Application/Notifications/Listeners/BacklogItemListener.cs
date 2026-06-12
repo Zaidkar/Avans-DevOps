@@ -1,18 +1,16 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
-using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 public class BacklogItemListener(
-    ISprintRepository sprintRepository,
+    Sprint sprint,
     INotificationStrategyFactory strategyFactory,
     IReadOnlyCollection<SprintRole> roles,
     IReadOnlyCollection<ChannelType> channels) : IEventListener
 {
-    private readonly ISprintRepository _sprintRepository = sprintRepository;
     private readonly INotificationStrategyFactory _strategyFactory = strategyFactory;
     private readonly IReadOnlyCollection<SprintRole> _roles = roles;
     private readonly IReadOnlyCollection<ChannelType> _channels = channels;
@@ -31,34 +29,27 @@ public class BacklogItemListener(
         {
             foreach (var role in eventRoles)
             {
-                var members = _sprintRepository.GetMembersByRole(data.SprintId, role);
-                if (members != null)
-                {
-                    recipientsById.AddRange(members);
-                }
+                var members = sprint.Members;
+
+                recipientsById.AddRange(members);
             }
         }
         else if (_roles.Count > 0)
         {
             foreach (var role in _roles)
             {
-                var members = _sprintRepository.GetMembersByRole(data.SprintId, role);
-                if (members != null)
-                {
+                var members = sprint.Members;
                     recipientsById.AddRange(members);
-                }
             }
         }
         else
         {
-            var members = _sprintRepository.GetMembers(data.SprintId);
-            if (members != null)
-            {
+            var members = sprint.Members;
                 foreach (var member in members)
                 {
                     recipientsById.Add(member);
                 }
-            }
+            
         }
 
         var message = new NotificationMessage

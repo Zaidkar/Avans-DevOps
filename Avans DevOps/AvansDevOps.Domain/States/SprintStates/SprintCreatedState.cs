@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 {
@@ -22,9 +23,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             sprint.SetPlanning(startDate, endDate);
         }
 
-        public override void AddMember(Sprint sprint, SprintMember member)
+        public override void AddMember(Sprint sprint, User user, SprintRole sprintRole)
         {
-            sprint.AddMemberInternal(member);
+            sprint.AddMemberInternal(user,  sprintRole);
         }
 
         public override void RemoveMember(Sprint sprint, Guid userId)
@@ -32,14 +33,14 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
             sprint.RemoveMemberInternal(userId);
         }
 
-        public override void AddBacklogItem(Sprint sprint, Guid backlogItemId)
+        public override void AddBacklogItem(Sprint sprint, BacklogItem backlogItem)
         {
-            sprint.AddBacklogItemInternal(backlogItemId);
+            sprint.AddBacklogItemInternal(backlogItem);
         }
 
-        public override void RemoveBacklogItem(Sprint sprint, Guid backlogItemId)
+        public override void RemoveBacklogItem(Sprint sprint,  BacklogItem backlogItem)
         {
-            sprint.RemoveBacklogItemInternal(backlogItemId);
+            sprint.RemoveBacklogItemInternal(backlogItem);
         }
 
         public override void AssignPipeline(Sprint sprint, PipelineDefinition pipeline)

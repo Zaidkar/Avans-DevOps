@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
     public class DiscussionThread
     {
+        private readonly IEventManager _eventManager;
         private readonly List<DiscussionPost> _posts = new();
 
         public Guid Id { get; }
@@ -17,7 +19,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         public IReadOnlyCollection<DiscussionPost> Posts => _posts.AsReadOnly();
 
-        public DiscussionThread(Guid id, Guid backlogItemId, string subject)
+        public DiscussionThread(Guid id, Guid backlogItemId, string subject, IEventManager eventManager)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Thread id cannot be empty.", nameof(id));
@@ -31,8 +33,19 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             Id = id;
             BacklogItemId = backlogItemId;
             Subject = subject;
+            _eventManager = eventManager;
+            SendNotification(NotificationEventNames.DiscussionCreated, new NotificationEventData
+            {
+                Subject = "Discussion created",
+                Body = $"Er is een nieuwe discussie gestart over {Subject}"
+            });
         }
 
+        public void SendNotification(String eventType, NotificationEventData data)
+        {
+            if (string.IsNullOrWhiteSpace(eventType)) throw new ArgumentException("Event Type is required.",nameof(eventType));
+            _eventManager.Notify(eventType, data);
+        }
         public void ChangeSubject(string subject)
         {
             EnsureUnlocked();
@@ -54,6 +67,11 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
                 throw new InvalidOperationException("This post is already part of the thread.");
 
             _posts.Add(post);
+            SendNotification(NotificationEventNames.DiscussionReply, new NotificationEventData
+            {
+                Subject = "Discussion reply",
+                Body = $"Er is een nieuwe reactie geplaatst over {Subject}:{post.Author} zei: {post.Message}"
+            });
         }
 
         public void RemovePost(Guid postId)

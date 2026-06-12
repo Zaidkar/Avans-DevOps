@@ -1,3 +1,4 @@
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -9,22 +10,26 @@ namespace AvansDevOps.Tests
     {
         private static Sprint CreateReleaseSprint()
         {
+            var eventManager = new EventManager();
             return new Sprint(
                 Guid.NewGuid(),
                 "Release Sprint",
                 new DateOnly(2026, 3, 1),
                 new DateOnly(2026, 3, 14),
-                SprintGoalType.Release);
+                SprintGoalType.Release,
+                eventManager);
         }
 
         private static Sprint CreateReviewSprint()
         {
+            var eventManager = new EventManager();
             return new Sprint(
                 Guid.NewGuid(),
                 "Review Sprint",
                 new DateOnly(2026, 4, 1),
                 new DateOnly(2026, 4, 14),
-                SprintGoalType.Review);
+                SprintGoalType.Review,
+                eventManager);
         }
 
         private static PipelineDefinition CreatePipeline()

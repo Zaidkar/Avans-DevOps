@@ -1,14 +1,12 @@
-using Avans_DevOps.AvansDevOps.Application.Repositories;
+
+using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Application.Reports.Services
 {
    public class ReportGenerator(
-    ISprintRepository sprintRepository,
-    IBacklogItemRepository backlogItemRepository,
+   Sprint sprint,
     ReportMetricsCalculator calculator)
 {
-    private readonly ISprintRepository _sprintRepository = sprintRepository;
-    private readonly IBacklogItemRepository _backlogItemRepository = backlogItemRepository;
     private readonly ReportMetricsCalculator _calculator = calculator;
 
     public string Generate(
@@ -20,14 +18,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Reports.Services
         string sprintLabel,
         string extraInfo)
     {
-        var sprint = _sprintRepository.GetById(sprintId)
-            ?? throw new InvalidOperationException($"Sprint with id {sprintId} does not exist.");
-
-        var backlogItems = _backlogItemRepository
-            .GetAll()
-            .Where(x => sprint.BacklogItemIds.Contains(x.Id))
-            .Select(x => x.Item)
-            .ToList();
+        var backlogItems = sprint.BacklogItems.ToList();
 
         var data = _calculator.Calculate(sprint, backlogItems);
 

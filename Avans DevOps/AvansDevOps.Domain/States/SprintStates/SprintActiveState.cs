@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 {
@@ -31,6 +32,12 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
         public override void FinishTimeBox(Sprint sprint)
         {
             sprint.SetFinishedState();
+            sprint.SendNotification(NotificationEventNames.SprintFinished, new NotificationEventData
+            {
+                    SprintId = sprint.Id,
+                    Subject = "Sprint finished",
+                    Body = $"Sprint {sprint.Name} has reached the finished state."
+            });
         }
     }
 }

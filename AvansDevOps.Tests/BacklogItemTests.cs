@@ -1,4 +1,5 @@
 using System;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Xunit;
 
@@ -15,10 +16,11 @@ namespace AvansDevOps.Tests
                 Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
             };
         }
-
+        
         private static BacklogItem CreateBacklogItem()
         {
-            return new BacklogItem(Guid.NewGuid(), "Backlog item", "Description", 5);
+            var eventManager = new EventManager();
+            return new BacklogItem(Guid.NewGuid(), "Backlog item", "Description", 5,eventManager);
         }
 
         private static Activity CreateActivity(Guid id, string title)

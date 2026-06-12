@@ -1,4 +1,5 @@
 using System;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
@@ -10,12 +11,14 @@ namespace AvansDevOps.Tests
     {
         private static Sprint CreateReleaseSprint()
         {
+            var eventManager = new EventManager();
             return new Sprint(
                 Guid.NewGuid(),
                 "Release Sprint",
                 new DateOnly(2026, 1, 1),
                 new DateOnly(2026, 1, 14),
-                SprintGoalType.Release);
+                SprintGoalType.Release,
+                eventManager);
         }
 
         private static PipelineDefinition CreatePipeline()

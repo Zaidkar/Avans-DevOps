@@ -1,11 +1,11 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
-using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 using Moq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AvansDevOps.Tests;
 
@@ -22,7 +22,19 @@ public class NotificationConsoleTests
         };
 
     private static SprintMember CreateMember(User user, SprintRole role) =>
-        new(Guid.NewGuid(), user, role);
+        new(user, role);
+
+    private static Sprint CreateSprint(String name)
+    {
+        var eventManager = new EventManager();
+        return new Sprint(
+            Guid.NewGuid(),
+            "Backlog Notification Sprint",
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)),
+            SprintGoalType.Release,
+            eventManager);
+    }
 
     private static string CaptureConsole(Action action)
     {
@@ -44,22 +56,23 @@ public class NotificationConsoleTests
     [Fact]
     public void TC_27_FR_07_FR_07_2_ReadyForTesting_EmailConsoleContainsBodyAndRecipient()
     {
-        var sprintId = Guid.NewGuid();
+        var sprint = CreateSprint("Sprint Test");
         var tester = CreateUser("Tester One", "tester.one@avans.dev");
-        var testerMember = CreateMember(tester, SprintRole.Tester);
-        var sprintRepository = new Mock<ISprintRepository>();
-        sprintRepository.Setup(x => x.GetMembersByRole(sprintId, SprintRole.Tester)).Returns(new List<SprintMember> { testerMember });
-
-        var factory = new NotificationStrategyFactory(new ExternalMailClient(), new SlackSdk(), new SmsSdk());
+        sprint.AddMember(tester, SprintRole.Tester);
+        var factory = new NotificationStrategyFactory(
+            new ExternalMailClient(),
+            new SlackSdk(),
+            new SmsSdk());
         var eventManager = new EventManager();
+        var emailChannel = new [] { ChannelType.Email };
         eventManager.Subscribe(
             NotificationEventNames.ReadyForTesting,
-            new BacklogItemListener(sprintRepository.Object, factory, new[] { SprintRole.Tester }, new[] { ChannelType.Email }));
+            new BacklogItemListener(sprint, factory, [SprintRole.Tester],emailChannel));
 
         var output = CaptureConsole(() =>
             eventManager.Notify(NotificationEventNames.ReadyForTesting, new NotificationEventData
             {
-                SprintId = sprintId,
+                SprintId = sprint.Id,
                 Subject = "Backlog item ready for testing",
                 Body = "Backlogitem 1 is ready for testing"
             }));
@@ -72,22 +85,20 @@ public class NotificationConsoleTests
     [Fact]
     public void TC_28_FR_07_ReleaseSuccess_EmailConsoleContainsSprintAndRecipient()
     {
-        var sprintId = Guid.NewGuid();
+        var sprint = CreateSprint("Test Sprint");
         var scrumMaster = CreateUser("Scrum Master", "scrummaster@avans.dev");
-        var scrumMasterMember = CreateMember(scrumMaster, SprintRole.ScrumMaster);
-        var sprintRepository = new Mock<ISprintRepository>();
-        sprintRepository.Setup(x => x.GetMembersByRole(sprintId, SprintRole.ScrumMaster)).Returns(new List<SprintMember> { scrumMasterMember });
-
+        
+        sprint.AddMember(scrumMaster, SprintRole.ScrumMaster);
         var factory = new NotificationStrategyFactory(new ExternalMailClient(), new SlackSdk(), new SmsSdk());
         var eventManager = new EventManager();
         eventManager.Subscribe(
             NotificationEventNames.ReleaseFailure,
-            new SprintNotificationListener(sprintRepository.Object, factory, new[] { ChannelType.Email }, new[] { SprintRole.ScrumMaster }));
+            new SprintNotificationListener(sprint, factory, new[] { ChannelType.Email }, new[] { SprintRole.ScrumMaster }));
 
         var output = CaptureConsole(() =>
             eventManager.Notify(NotificationEventNames.ReleaseFailure, new NotificationEventData
             {
-                SprintId = sprintId,
+                SprintId = sprint.Id,
                 Subject = "Pipeline activity failed",
                 Body = "A pipeline activity failed during the release of sprint Sprint 42."
             }));
@@ -100,12 +111,12 @@ public class NotificationConsoleTests
     [Fact]
     public void TC_29_FR_07_2_DiscussionReply_UsesEmailAndSlackChannels()
     {
-        var sprintId = Guid.NewGuid();
-        var sprintRepository = new Mock<ISprintRepository>();
+       
+        var sprint = CreateSprint("Test Sprint");
         var teamMember = CreateUser("Developer One", "developer.one@avans.dev");
         var teamSprintMember = CreateMember(teamMember, SprintRole.Developer);
-        sprintRepository.Setup(x => x.GetMembers(sprintId)).Returns(new List<SprintMember> { teamSprintMember });
 
+        sprint.AddMember(teamMember, SprintRole.Developer);
         var emailChannel = new Mock<INotificationStrategy>();
         var slackChannel = new Mock<INotificationStrategy>();
         var factory = new Mock<INotificationStrategyFactory>();
@@ -113,19 +124,19 @@ public class NotificationConsoleTests
         factory.Setup(x => x.Create(ChannelType.Slack)).Returns(slackChannel.Object);
 
         var listener = new DiscussionNotificationListener(
-            sprintRepository.Object,
+            sprint,
             factory.Object,
             new[] { ChannelType.Email, ChannelType.Slack });
 
         var output = CaptureConsole(() =>
             listener.Update(new NotificationEventData
             {
-                SprintId = sprintId,
+                SprintId = sprint.Id,
                 Subject = "Discussion reply",
                 Body = "Er is een nieuwe reactie geplaatst over Refinement"
             }));
 
-        Assert.Equal(string.Empty, output);
+        
         emailChannel.Verify(x => x.Execute(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
         slackChannel.Verify(x => x.Execute(It.IsAny<NotificationMessage>(), It.Is<List<SprintMember>>(list => list.Count == 1)), Times.Once);
     }

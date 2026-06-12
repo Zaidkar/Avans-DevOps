@@ -1,18 +1,16 @@
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
-using Avans_DevOps.AvansDevOps.Application.Repositories;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 public class SprintNotificationListener(
-    ISprintRepository sprintRepository,
+    Sprint sprint,
     INotificationStrategyFactory strategyFactory,
     IReadOnlyCollection<ChannelType> channels,
     IReadOnlyCollection<SprintRole>? roles = null) : IEventListener
 {
-    private readonly ISprintRepository _sprintRepository = sprintRepository;
     private readonly INotificationStrategyFactory _strategyFactory = strategyFactory;
     private readonly IReadOnlyCollection<ChannelType> _channels = channels;
     private readonly IReadOnlyCollection<SprintRole>? _roles = roles;
@@ -26,18 +24,18 @@ public class SprintNotificationListener(
 
     public void Update(NotificationEventData data)
     {
-        List<SprintMember> recipients;
+        var recipients = new List<SprintMember>();
         if (_eventTypeToRoles.TryGetValue(data.EventType, out var mappedRoles))
         {
-            recipients = GetMembersByRoles(data.SprintId, mappedRoles);
+            recipients.AddRange(GetMembersByRoles(data.SprintId, mappedRoles));
         }
         else if (_roles is not null && _roles.Count > 0)
         {
-            recipients = GetMembersByRoles(data.SprintId, _roles);
+            recipients.AddRange(GetMembersByRoles(data.SprintId, _roles));
         }
         else
         {
-            recipients = _sprintRepository.GetMembers(data.SprintId);
+            recipients.AddRange(sprint.Members);
         }
 
         var message = new NotificationMessage
@@ -61,7 +59,7 @@ public class SprintNotificationListener(
 
         foreach (var role in roles)
         {
-            foreach (var member in _sprintRepository.GetMembersByRole(sprintId, role))
+            foreach (var member in sprint.Members)
             {
                 recipientsById[member.User.Id] = member;
             }

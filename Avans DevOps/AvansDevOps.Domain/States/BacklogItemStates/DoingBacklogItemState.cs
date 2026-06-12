@@ -1,3 +1,4 @@
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
@@ -30,6 +31,12 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
         public override void MarkReadyForTesting(BacklogItem backlogItem)
         {
             backlogItem.SetReadyForTestingState();
+            backlogItem.SendNotification(NotificationEventNames.ReadyForTesting, new NotificationEventData
+            {
+                // SprintId = backlogItem.SprintId ?? throw new InvalidOperationException("Backlog item must be in a sprint"),
+                Subject = "Backlog item ready for testing",
+                Body = $"Backlog item {backlogItem.Title} is ready for testing"
+            });
             
         }
     }

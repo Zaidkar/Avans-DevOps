@@ -1,4 +1,4 @@
-using Avans_DevOps.AvansDevOps.Application.Repositories.Fakes;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 
@@ -9,17 +9,15 @@ public class ReportDemoRunner
     public void Run()
     {
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [ReportDemoRunner] Run");
-
-        var sprintRepository = new FakeSprintRepository();
-        var backlogItemRepository = new FakeBacklogItemRepository(sprintRepository);
-        var generator = new ReportGenerator(sprintRepository, backlogItemRepository, new ReportMetricsCalculator());
+        var eventManager = new EventManager();
 
         var sprint = new Sprint(
             Guid.NewGuid(),
             "Sprint Report Demo",
             DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),
             DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
-            SprintGoalType.Review);
+            SprintGoalType.Review, eventManager);
+        var generator = new ReportGenerator(sprint, new ReportMetricsCalculator());
 
         var developer = new User
         {
@@ -28,24 +26,24 @@ public class ReportDemoRunner
             Email = "developer.demo@avans.dev"
         };
 
-        sprint.AddMember(new SprintMember(Guid.NewGuid(), developer, SprintRole.Developer));
+        sprint.AddMember(developer, SprintRole.Developer);
 
-        var doneItem = new BacklogItem(Guid.NewGuid(), "Login", "Implement login flow", 5);
+        var doneItem = new BacklogItem(Guid.NewGuid(), "Login", "Implement login flow", 5,eventManager);
+        sprint.AddBacklogItem(doneItem);
         doneItem.AssignDeveloper(developer);
         doneItem.MarkReadyForTesting();
         doneItem.StartTesting();
         doneItem.MarkTested();
         doneItem.ApproveDone();
 
-        var todoItem = new BacklogItem(Guid.NewGuid(), "Dashboard", "Add overview dashboard", 8);
+        var todoItem = new BacklogItem(Guid.NewGuid(), "Dashboard", "Add overview dashboard", 8,eventManager);
+        sprint.AddBacklogItem(todoItem);
         todoItem.AssignDeveloper(developer);
 
-        sprint.AddBacklogItem(doneItem.Id);
-        sprint.AddBacklogItem(todoItem.Id);
+        // sprint.AddBacklogItem(doneItem.Id);
+        // sprint.AddBacklogItem(todoItem.Id);
 
-        sprintRepository.Create(sprint);
-        backlogItemRepository.Create(doneItem);
-        backlogItemRepository.Create(todoItem);
+        
 
         var report = generator.Generate(
             sprint.Id,

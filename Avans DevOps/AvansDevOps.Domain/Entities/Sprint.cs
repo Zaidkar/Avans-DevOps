@@ -4,13 +4,16 @@ using Avans_DevOps.AvansDevOps.Domain.States.SprintStates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 
 namespace Avans_DevOps.AvansDevOps.Domain.Entities
 {
     public class Sprint
     {
+        private readonly IEventManager _eventManager;
+
         private readonly List<SprintMember> _members = [];
-        private readonly List<Guid> _backlogItemIds = [];
+        private readonly List<BacklogItem> _backlogItems = [];
         private readonly List<ScmReference> _scmReferences = [];
         private SprintState _state;
         
@@ -26,7 +29,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public string? ReviewSummaryDocumentPath { get; private set; }
 
         public IReadOnlyCollection<SprintMember> Members => _members.AsReadOnly();
-        public IReadOnlyCollection<Guid> BacklogItemIds => _backlogItemIds.AsReadOnly();
+        public IReadOnlyCollection<BacklogItem> BacklogItems => _backlogItems.AsReadOnly();
         public string CurrentState => _state.Name;
 
         public Sprint(
@@ -34,7 +37,8 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             string name,
             DateOnly startDate,
             DateOnly endDate,
-            SprintGoalType goalType)
+            SprintGoalType goalType,
+            IEventManager eventManager)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Sprint id cannot be empty.", nameof(id));
@@ -50,16 +54,16 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             StartDate = startDate;
             EndDate = endDate;
             SprintGoalType = goalType;
-
+            _eventManager = eventManager;
             _state = new SprintCreatedState();
         }
 
         public void Rename(string name) => _state.Rename(this, name);
         public void ChangePlanning(DateOnly startDate, DateOnly endDate) => _state.ChangePlanning(this, startDate, endDate);
-        public void AddMember(SprintMember member) => _state.AddMember(this, member);
+        public void AddMember(User user, SprintRole sprintRole) => _state.AddMember(this, user, sprintRole);
         public void RemoveMember(Guid userId) => _state.RemoveMember(this, userId);
-        public void AddBacklogItem(Guid backlogItemId) => _state.AddBacklogItem(this, backlogItemId);
-        public void RemoveBacklogItem(Guid backlogItemId) => _state.RemoveBacklogItem(this, backlogItemId);
+        public void AddBacklogItem(BacklogItem backlogItem) => _state.AddBacklogItem(this, backlogItem);
+        public void RemoveBacklogItem(BacklogItem backlogItem) => _state.RemoveBacklogItem(this, backlogItem);
         public void AssignPipeline(PipelineDefinition pipeline) => _state.AssignPipeline(this, pipeline);
         public void UploadReviewSummary(string documentPath) => _state.UploadReviewSummary(this, documentPath);
 
@@ -83,7 +87,32 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
             _scmReferences.Add(scmReference);
         }
+        internal bool SendNotification(String eventType, NotificationEventData data)
+        {
+            if (string.IsNullOrWhiteSpace(eventType)) throw new ArgumentException("Event Type is required.",nameof(eventType));
+            _eventManager.Notify(eventType, data);
+            return true;
+        }
 
+        public bool ExecuteReleasePipeline()
+        {
+            var executionResult = Pipeline.Execute();
+            // return executionResult.Succeeded;
+
+            return executionResult.Succeeded
+                ? SendNotification(NotificationEventNames.ReleaseSuccess, new NotificationEventData
+                {
+                    SprintId = Id,
+                    Subject = "Pipeline activities successful",
+                    Body = $"All pipeline activities for sprint {Name} were executed successfully."
+                })
+                : SendNotification(NotificationEventNames.ReleaseFailure, new NotificationEventData
+                {
+                    SprintId = Id,
+                    Subject = "Pipeline activity failed",
+                    Body = $"A pipeline activity failed during the release of sprint {Name}."
+                });
+        }
         public void RemoveScmReference(Guid scmReferenceId)
         {
             var scmReference = _scmReferences.SingleOrDefault(x => x.Id == scmReferenceId)
@@ -108,8 +137,9 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             EndDate = endDate;
         }
 
-        internal void AddMemberInternal(SprintMember member)
+        internal void AddMemberInternal(User user, SprintRole sprintRole)
         {
+            var member = new SprintMember(user, sprintRole);
             if (member is null)
                 throw new ArgumentNullException(nameof(member));
 
@@ -135,24 +165,15 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             _members.Remove(existing);
         }
 
-        internal void AddBacklogItemInternal(Guid backlogItemId)
+        internal void AddBacklogItemInternal(BacklogItem backlogItem)
         {
-            if (backlogItemId == Guid.Empty)
-                throw new ArgumentException("Backlog item id cannot be empty.", nameof(backlogItemId));
-
-            if (_backlogItemIds.Contains(backlogItemId))
-                throw new InvalidOperationException("Backlog item already exists in the sprint.");
-
-            _backlogItemIds.Add(backlogItemId);
+            
+            _backlogItems.Add(backlogItem);
         }
 
-        internal void RemoveBacklogItemInternal(Guid backlogItemId)
+        internal void RemoveBacklogItemInternal(BacklogItem backlogItem)
         {
-            if (backlogItemId == Guid.Empty)
-                throw new ArgumentException("Backlog item id cannot be empty.", nameof(backlogItemId));
-
-            if (!_backlogItemIds.Remove(backlogItemId))
-                throw new InvalidOperationException("Backlog item does not exist in the sprint.");
+            _backlogItems.Remove(backlogItem);
         }
 
         internal void SetReviewSummaryDocument(string documentPath)
