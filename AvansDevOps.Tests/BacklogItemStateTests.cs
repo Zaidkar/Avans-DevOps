@@ -1,3 +1,4 @@
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Xunit;
 
@@ -17,7 +18,8 @@ namespace AvansDevOps.Tests
 
         private static BacklogItem CreateBacklogItem()
         {
-            return new BacklogItem(Guid.NewGuid(), "Backlog item", "Beschrijving", 5);
+            var eventManager = new EventManager();
+            return new BacklogItem(Guid.NewGuid(), "Backlog item", "Beschrijving", 5, eventManager);
         }
 
         private static Activity CreateActivity(string title)

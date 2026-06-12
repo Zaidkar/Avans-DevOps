@@ -1,3 +1,4 @@
+using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Xunit;
@@ -29,7 +30,8 @@ namespace AvansDevOps.Tests
         [Fact]
         public void TC_18_ScmReference_BacklogItem_AddCommitAndBranch_Succeeds()
         {
-            var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3);
+            var eventManager = new EventManager();
+            var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3, eventManager);
             var commit = CreateCommitReference("a1b2c3d");
             var branch = CreateBranchReference("feature/login");
 
@@ -44,7 +46,8 @@ namespace AvansDevOps.Tests
         [Fact]
         public void TC_18_ScmReference_BacklogItem_AddDuplicateReference_IsRejected()
         {
-            var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3);
+            var eventManager = new EventManager();
+            var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3, eventManager);
             var commit = CreateCommitReference("a1b2c3d");
 
             backlogItem.AddScmReference(commit);
