@@ -11,6 +11,5 @@ namespace Avans_DevOps.AvansDevOps.Application.Pipeline
     {
         PipelineDefinition CreateBuildValidationPipeline(string pipelineName);
         PipelineDefinition CreateDeploymentPipeline(string pipelineName);
-         
     }
 }
