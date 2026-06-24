@@ -14,10 +14,5 @@
     <None Remove="AvansDevOps.Tests\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="AvansDevOps.Application\Services\" />
-    <Folder Include="AvansDevOps.Infrastructure\" />
-    <Folder Include="AvansDevOps.Service\" />
-  </ItemGroup>
 
 </Project>
