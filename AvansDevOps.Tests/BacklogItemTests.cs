@@ -100,7 +100,7 @@ namespace AvansDevOps.Tests
         }
 
         [Theory]
-        [InlineData("EmptyGuid", "", "Title cannot be empty.", 5)]
+        [InlineData("EmptyGuid", "", "Backlog item id cannot be empty.", 5)]
         [InlineData("EmptyTitle", "", "Title cannot be empty.", 5)]
         [InlineData("WhitespaceTitle", "   ", "Title cannot be empty.", 5)]
         [InlineData("NegativeStoryPoints", "Valid Title", "Story points cannot be negative.", -1)]

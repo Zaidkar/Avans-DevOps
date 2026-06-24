@@ -74,9 +74,6 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public void AddActivity(Activity activity) => _state.AddActivity(this, activity);
         public void RemoveActivity(Guid activityId) => _state.RemoveActivity(this, activityId);
 
-        public void AssignToSprint(Guid sprintId) => _state.AssignToSprint(this, sprintId);
-        public void RemoveFromSprint() => _state.RemoveFromSprint(this);
-
         public void StartWork() => _state.StartWork(this);
         public void MarkReadyForTesting() => _state.MarkReadyForTesting(this);
         public void StartTesting() => _state.StartTesting(this);
