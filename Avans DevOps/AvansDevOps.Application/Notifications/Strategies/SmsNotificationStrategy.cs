@@ -12,7 +12,7 @@ public class SmsNotificationStrategy(SmsSdk smsSdk) : INotificationStrategy
     {
         for (var index = 0; index < recipients.Count; index++)
         {
-            _smsSdk.SendSms($"+310000000{index + 1}", message.Body);
+            SmsSdk.SendSms($"+310000000{index + 1}", message.Body);
         }
     }
 }

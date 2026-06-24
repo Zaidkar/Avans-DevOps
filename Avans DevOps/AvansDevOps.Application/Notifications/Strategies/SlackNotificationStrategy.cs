@@ -12,7 +12,7 @@ public class SlackNotificationStrategy(SlackSdk slackSdk) : INotificationStrateg
     {
         for (var index = 0; index < recipients.Count; index++)
         {
-            _slackSdk.SendSlack($"#recipient-{index + 1}", message.Body);
+            SlackSdk.SendSlack($"#recipient-{index + 1}", message.Body);
         }
     }
 }

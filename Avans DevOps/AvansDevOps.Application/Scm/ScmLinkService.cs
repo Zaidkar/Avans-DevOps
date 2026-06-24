@@ -14,24 +14,21 @@ namespace Avans_DevOps.AvansDevOps.Application.Scm
 
         public void LinkCommitToBacklogItem(BacklogItem backlogItem, string commitHash, string? description = null)
         {
-            if (backlogItem is null)
-                throw new ArgumentNullException(nameof(backlogItem));
+            ArgumentNullException.ThrowIfNull(backlogItem);
 
             backlogItem.AddScmReference(_scmAdapter.CreateCommitReference(commitHash, description));
         }
 
         public void LinkBranchToSprint(Sprint sprint, string branchName, string? description = null)
         {
-            if (sprint is null)
-                throw new ArgumentNullException(nameof(sprint));
+            ArgumentNullException.ThrowIfNull(sprint);
 
             sprint.AddScmReference(_scmAdapter.CreateBranchReference(branchName, description));
         }
 
         public void LinkCommitToActivity(Activity activity, string commitHash, string? description = null)
         {
-            if (activity is null)
-                throw new ArgumentNullException(nameof(activity));
+            ArgumentNullException.ThrowIfNull(activity);
 
             activity.AddScmReference(_scmAdapter.CreateCommitReference(commitHash, description));
         }

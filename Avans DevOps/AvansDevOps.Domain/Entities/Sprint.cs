@@ -76,8 +76,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         public void AddScmReference(ScmReference scmReference)
         {
-            if (scmReference is null)
-                throw new ArgumentNullException(nameof(scmReference));
+            ArgumentNullException.ThrowIfNull(scmReference);
 
             if (_scmReferences.Any(x => x.Id == scmReference.Id))
                 throw new InvalidOperationException("This SCM reference is already linked to the sprint.");
@@ -95,7 +94,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
           
             var executionResult = Pipeline?.Execute();
-            // return executionResult.Succeeded;
+            
             if (executionResult is null)
             {
                 throw new InvalidOperationException("Execution result is null.");
@@ -141,8 +140,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         internal void AddMemberInternal(User user, SprintRole sprintRole)
         {
             var member = new SprintMember(user, sprintRole);
-            if (member is null)
-                throw new ArgumentNullException(nameof(member));
+            ArgumentNullException.ThrowIfNull(user);
 
             if (_members.Any(m => m.User.Id == member.User.Id))
                 throw new InvalidOperationException("User is already a member of the sprint.");

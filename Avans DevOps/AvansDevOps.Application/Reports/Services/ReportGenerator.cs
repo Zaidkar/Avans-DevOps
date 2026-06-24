@@ -20,7 +20,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Reports.Services
     {
         var backlogItems = sprint.BacklogItems.ToList();
 
-        var data = _calculator.Calculate(sprint, backlogItems);
+        var data = ReportMetricsCalculator.Calculate(sprint, backlogItems);
 
         var builder = new TextReportBuilder();
 

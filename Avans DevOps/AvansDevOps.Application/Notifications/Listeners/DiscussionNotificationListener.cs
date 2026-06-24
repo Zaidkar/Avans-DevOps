@@ -9,7 +9,6 @@ public class DiscussionNotificationListener(
     INotificationStrategyFactory strategyFactory,
     IReadOnlyCollection<ChannelType> channels) : IEventListener
 {
-    // private readonly ISprintRepository _sprintRepository = sprintRepository;
     private readonly INotificationStrategyFactory _strategyFactory = strategyFactory;
     private readonly IReadOnlyCollection<ChannelType> _channels = channels;
 

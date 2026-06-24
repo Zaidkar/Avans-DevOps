@@ -60,8 +60,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
             EnsureUnlocked();
 
-            if (post is null)
-                throw new ArgumentNullException(nameof(post));
+            ArgumentNullException.ThrowIfNull(post);
 
             if (_posts.Any(x => x.Id == post.Id))
                 throw new InvalidOperationException("This post is already part of the thread.");

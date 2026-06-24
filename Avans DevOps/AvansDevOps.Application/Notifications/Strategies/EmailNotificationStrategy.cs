@@ -12,7 +12,7 @@ public class EmailNotificationStrategy(ExternalMailClient mailClient) : INotific
     {
         foreach (var recipient in recipients)
         {
-            _mailClient.SendMail(recipient.User.Email, message.Subject, message.Body);
+            ExternalMailClient.SendMail(recipient.User.Email, message.Subject, message.Body);
         }
     }
 }

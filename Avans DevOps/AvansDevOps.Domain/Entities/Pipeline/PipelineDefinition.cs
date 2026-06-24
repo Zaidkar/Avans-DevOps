@@ -19,16 +19,14 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline
 
         public override void Add(PipelineComponent component)
         {
-            if (component is null)
-                throw new ArgumentNullException(nameof(component));
+            ArgumentNullException.ThrowIfNull(component);
 
             _components.Add(component);
         }
 
         public override void Remove(PipelineComponent component)
         {
-            if (component is null)
-                throw new ArgumentNullException(nameof(component));
+            ArgumentNullException.ThrowIfNull(component);
 
             _components.Remove(component);
         }

@@ -8,7 +8,7 @@ namespace Avans_DevOps.AvansDevOps.Application.Reports.Services
 {
 public class ReportMetricsCalculator
 {
-    public ReportData Calculate(Sprint sprint, List<BacklogItem> backlogItems)
+    public static ReportData Calculate(Sprint sprint, List<BacklogItem> backlogItems)
     {
         var totalPoints = backlogItems.Sum(x => x.StoryPoints);
 

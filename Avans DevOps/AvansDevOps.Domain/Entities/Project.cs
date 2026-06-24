@@ -10,13 +10,11 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public IReadOnlyList<BacklogItem> ProductBacklog => _productBacklog;
         private readonly List<Sprint> _sprints = new();
 
-        // public Guid Id { get; }
+        
         public string Name { get; private set; }
         public string Description { get; private set; }
         public SprintMember? ProductOwner { get; private set; }
-        public SprintMember? ScrumMaster { get; private set; }
-        public List<SprintMember>? Developers { get; private set; }
-        public List<SprintMember>? Testers { get; private set; }
+        
 
         public Project(string name, string description, SprintMember projectCreator)
         {
@@ -50,8 +48,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         public void AddBacklogItem(BacklogItem backlogItem)
         {
-            if (backlogItem is null)
-                throw new ArgumentNullException(nameof(backlogItem));
+           ArgumentNullException.ThrowIfNull(backlogItem);
 
             if (_productBacklog.Any(x => x.Id == backlogItem.Id))
                 throw new InvalidOperationException("This backlog item is already part of the product backlog.");
@@ -63,8 +60,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
             var backlogItem = _productBacklog.SingleOrDefault(x => x.Id == backlogItemId);
 
-            if (backlogItem is null)
-                throw new InvalidOperationException("Backlog item not found in this project.");
+           ArgumentNullException.ThrowIfNull(backlogItem);
 
             if (backlogItem.IsDone())
                 throw new InvalidOperationException("Backlog item is done and cannot be removed.");

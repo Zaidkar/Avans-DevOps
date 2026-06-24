@@ -49,8 +49,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         }
         public void AddScmReference(ScmReference scmReference)
         {
-            if (scmReference is null)
-                throw new ArgumentNullException(nameof(scmReference));
+            ArgumentNullException.ThrowIfNull(scmReference);
 
             if (_scmReferences.Any(x => x.Id == scmReference.Id))
                 throw new InvalidOperationException("This SCM reference is already linked to the backlog item.");
@@ -148,8 +147,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
 
         internal void AddActivityInternal(Activity activity)
         {
-            if (activity is null)
-                throw new ArgumentNullException(nameof(activity));
+            ArgumentNullException.ThrowIfNull(activity);
 
             if (_activities.Any(x => x.Id == activity.Id))
                 throw new InvalidOperationException("This activity is already linked to the backlog item.");
