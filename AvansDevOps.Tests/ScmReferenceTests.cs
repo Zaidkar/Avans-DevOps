@@ -15,7 +15,8 @@ namespace AvansDevOps.Tests
                 ScmReferenceType.Commit,
                 value,
                 "Commit reference",
-                "GitHub");
+                "GitHub"
+            );
         }
 
         private static ScmReference CreateBranchReference(string value)
@@ -25,7 +26,19 @@ namespace AvansDevOps.Tests
                 ScmReferenceType.Branch,
                 value,
                 "Branch reference",
-                "GitHub");
+                "GitHub"
+            );
+        }
+
+        private static ScmReference CreateScmReference(Guid? id = null)
+        {
+            return new ScmReference(
+                id ?? Guid.NewGuid(),
+                ScmReferenceType.Commit,
+                "abc123",
+                "Test commit",
+                "GitHub"
+            );
         }
 
         [Fact]
@@ -40,8 +53,14 @@ namespace AvansDevOps.Tests
             backlogItem.AddScmReference(branch);
 
             Assert.Equal(2, backlogItem.ScmReferences.Count);
-            Assert.Contains(backlogItem.ScmReferences, x => x.Id == commit.Id && x.Type == ScmReferenceType.Commit);
-            Assert.Contains(backlogItem.ScmReferences, x => x.Id == branch.Id && x.Type == ScmReferenceType.Branch);
+            Assert.Contains(
+                backlogItem.ScmReferences,
+                x => x.Id == commit.Id && x.Type == ScmReferenceType.Commit
+            );
+            Assert.Contains(
+                backlogItem.ScmReferences,
+                x => x.Id == branch.Id && x.Type == ScmReferenceType.Branch
+            );
         }
 
         [Fact]
@@ -67,6 +86,62 @@ namespace AvansDevOps.Tests
 
             activity.RemoveScmReference(commit.Id);
             Assert.Empty(activity.ScmReferences);
+        }
+
+        [Fact]
+        public void TC_26_FR_18_ScmReference_WithValidData_IsCreated()
+        {
+            var id = Guid.NewGuid();
+
+            var scmReference = new ScmReference(
+                id,
+                ScmReferenceType.Branch,
+                "main",
+                "Main branch",
+                "GitHub"
+            );
+
+            Assert.Equal(id, scmReference.Id);
+            Assert.Equal(ScmReferenceType.Branch, scmReference.Type);
+            Assert.Equal("main", scmReference.Value);
+            Assert.Equal("Main branch", scmReference.Description);
+            Assert.Equal("GitHub", scmReference.Provider);
+        }
+
+        [Fact]
+        public void TC_27_FR_18_ScmReference_InvalidData_IsRejected()
+        {
+            Assert.Throws<ArgumentException>(
+                () => new ScmReference(Guid.Empty, ScmReferenceType.Commit, "abc123")
+            );
+
+            Assert.Throws<ArgumentException>(
+                () => new ScmReference(Guid.NewGuid(), ScmReferenceType.Commit, "")
+            );
+
+            Assert.Throws<ArgumentException>(
+                () =>
+                    new ScmReference(
+                        Guid.NewGuid(),
+                        ScmReferenceType.Commit,
+                        "abc123",
+                        provider: ""
+                    )
+            );
+        }
+
+        [Fact]
+        public void TC_28_FR_18_ScmReference_DescriptionCanBeChanged()
+        {
+            var scmReference = CreateScmReference();
+
+            scmReference.ChangeDescription("Updated description");
+
+            Assert.Equal("Updated description", scmReference.Description);
+
+            scmReference.ChangeDescription(null);
+
+            Assert.Null(scmReference.Description);
         }
     }
 }
