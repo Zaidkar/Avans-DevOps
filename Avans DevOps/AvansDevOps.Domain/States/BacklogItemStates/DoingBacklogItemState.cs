@@ -18,14 +18,15 @@ namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
             backlogItem.RemoveActivityInternal(activityId);
         }
 
-        public override void RemoveFromSprint(BacklogItem backlogItem)
+        public override void AssignDeveloper(BacklogItem backlogItem, User developer)
         {
-            backlogItem.RemoveFromSprintInternal();
+            backlogItem.AssignDeveloperInternal(developer);
         }
 
         public override void UnassignDeveloper(BacklogItem backlogItem)
         {
             backlogItem.UnassignDeveloperInternal();
+            backlogItem.SetTodoState();
         }
 
         public override void MarkReadyForTesting(BacklogItem backlogItem)

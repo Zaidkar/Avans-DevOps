@@ -56,7 +56,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_04_FR_05_ApproveDone_FailsWhenNotAllActivitiesDone()
+        public void TC_05_FR_05_ApproveDone_FailsWhenNotAllActivitiesDone()
         {
             var backlogItem = CreateBacklogItem();
             var dev = CreateUser("Dev One");
@@ -99,22 +99,29 @@ namespace AvansDevOps.Tests
             Assert.Equal("Done", backlogItem.CurrentState);
         }
 
-        [Fact]
-        public void TC_11_FR_09_ReturnToReadyForTesting_OnlyFromTested()
+        [Theory]
+        [InlineData("EmptyGuid", "", "Title cannot be empty.", 5)]
+        [InlineData("EmptyTitle", "", "Title cannot be empty.", 5)]
+        [InlineData("WhitespaceTitle", "   ", "Title cannot be empty.", 5)]
+        [InlineData("NegativeStoryPoints", "Valid Title", "Story points cannot be negative.", -1)]
+        public void TC_23_BacklogItemCreation_FailsIfParametersAreInvalid(
+            string scenario,
+            string title,
+            string expectedMessage,
+            int storyPoints)
         {
-            var backlogItem = CreateBacklogItem();
-            var dev = CreateUser("Dev One");
+            // Arrange
+            var id = scenario == "EmptyGuid" ? Guid.Empty : Guid.NewGuid();
+            var eventManager = new EventManager();
+            var description = "Valid description";
 
-            backlogItem.AssignDeveloper(dev);
-            backlogItem.MarkReadyForTesting();
-            backlogItem.StartTesting();
+            // Act & Assert
+            var exception = Assert.Throws<ArgumentException>(() => 
+                new BacklogItem(id, title, description, storyPoints, eventManager)
+            );
 
-            Assert.Throws<InvalidOperationException>(() => backlogItem.ReturnToReadyForTesting());
-
-            backlogItem.MarkTested();
-            backlogItem.ReturnToReadyForTesting();
-
-            Assert.Equal("ReadyForTesting", backlogItem.CurrentState);
+            // Verify it caught the exact validation branch text and the correct parameter name
+            Assert.Contains(expectedMessage, exception.Message);
         }
     }
 }

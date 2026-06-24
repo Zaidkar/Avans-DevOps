@@ -20,7 +20,6 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         public string Title { get; private set; }
         public string Description { get; private set; }
         public int StoryPoints { get; private set; }
-        public Guid? SprintId { get; private set; }
         public User? AssignedDeveloper { get; private set; }
         public User? LastDeveloper { get; private set; }
 
@@ -160,19 +159,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
             var activity = _activities.SingleOrDefault(x => x.Id == activityId) ?? throw new InvalidOperationException("Activity not found on this backlog item.");
             _activities.Remove(activity);
         }
-
-        internal void AssignToSprintInternal(Guid sprintId)
-        {
-            if (sprintId == Guid.Empty)
-                throw new ArgumentException("Sprint id cannot be empty.", nameof(sprintId));
-
-            SprintId = sprintId;
-        }
-
-        internal void RemoveFromSprintInternal()
-        {
-            SprintId = null;
-        }
+        
 
         internal bool HasAssignedDeveloper() => AssignedDeveloper is not null;
 

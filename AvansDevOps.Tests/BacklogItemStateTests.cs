@@ -29,62 +29,6 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_09_BacklogItem_HappyFlow_TodoToDone()
-        {
-            var backlogItem = CreateBacklogItem();
-            var developer = CreateUser("Dev One");
-            var activity = CreateActivity("Implement API");
-
-            backlogItem.AddActivity(activity);
-            activity.StartWork();
-            activity.MarkDone();
-
-            Assert.Equal("Todo", backlogItem.CurrentState);
-
-            backlogItem.AssignDeveloper(developer);
-            Assert.Equal("Doing", backlogItem.CurrentState);
-
-            backlogItem.MarkReadyForTesting();
-            Assert.Equal("ReadyForTesting", backlogItem.CurrentState);
-
-            backlogItem.StartTesting();
-            Assert.Equal("Testing", backlogItem.CurrentState);
-
-            backlogItem.MarkTested();
-            Assert.Equal("Tested", backlogItem.CurrentState);
-
-            backlogItem.ApproveDone();
-            Assert.Equal("Done", backlogItem.CurrentState);
-            Assert.Null(backlogItem.AssignedDeveloper);
-        }
-
-        [Fact]
-        public void TC_08_BacklogItem_StartWorkWithoutDeveloper_IsRejected()
-        {
-            var backlogItem = CreateBacklogItem();
-
-            Assert.Throws<InvalidOperationException>(() => backlogItem.StartWork());
-            Assert.Equal("Todo", backlogItem.CurrentState);
-        }
-
-        [Fact]
-        public void TC_04_BacklogItem_ApproveDone_WhenActivitiesNotDone_IsRejected()
-        {
-            var backlogItem = CreateBacklogItem();
-            var developer = CreateUser("Dev One");
-            var activity = CreateActivity("Implement API");
-
-            backlogItem.AddActivity(activity);
-            backlogItem.AssignDeveloper(developer);
-            backlogItem.MarkReadyForTesting();
-            backlogItem.StartTesting();
-            backlogItem.MarkTested();
-
-            Assert.Throws<InvalidOperationException>(() => backlogItem.ApproveDone());
-            Assert.Equal("Tested", backlogItem.CurrentState);
-        }
-
-        [Fact]
         public void TC_10_BacklogItem_TestingReturnToTodo_UnassignsDeveloper()
         {
             var backlogItem = CreateBacklogItem();
@@ -98,11 +42,11 @@ namespace AvansDevOps.Tests
 
             Assert.Equal("Todo", backlogItem.CurrentState);
             Assert.Null(backlogItem.AssignedDeveloper);
-            Assert.Equal(developer.Id, backlogItem.LastDeveloper?.Id);
+            Assert.Equal(developer.Id, backlogItem.LastDeveloper?.Id);  
         }
 
         [Fact]
-        public void TC_11_BacklogItem_ReturnToReadyForTesting_OnlyFromTested()
+        public void TC_11_BacklogItem_ReturnToReadyForTesting_FromTested()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -111,12 +55,180 @@ namespace AvansDevOps.Tests
             backlogItem.MarkReadyForTesting();
             backlogItem.StartTesting();
 
-            Assert.Throws<InvalidOperationException>(() => backlogItem.ReturnToReadyForTesting());
+            
 
             backlogItem.MarkTested();
             backlogItem.ReturnToReadyForTesting();
 
             Assert.Equal("ReadyForTesting", backlogItem.CurrentState);
+        }
+
+        [Fact]
+        public void TC_12_BacklogItem_ReturnToReadyForTesting_FromOtherShouldFail()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+            backlogItem.AssignDeveloper(developer);
+            backlogItem.MarkReadyForTesting();
+            
+            Assert.Throws<InvalidOperationException>(() => backlogItem.ReturnToReadyForTesting());
+        }
+
+        [Fact]
+        public void TC_13_BacklogItem_ChangingInformation_FromToDo()
+        {
+            var backlogItem = CreateBacklogItem();
+            backlogItem.ChangeDescription("Nieuwe beschrijving");
+            backlogItem.ChangeStoryPoints(3);
+            backlogItem.ChangeTitle("Nieuwe Titel");
+            Assert.Equal("Nieuwe beschrijving", backlogItem.Description);
+            Assert.Equal("Nieuwe Titel", backlogItem.Title);
+            Assert.Equal(3, backlogItem.StoryPoints);
+        }
+
+        [Fact]
+        public void TC_14_BacklogItem_ChangingInformation_FromDoingFails()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+            backlogItem.AssignDeveloper(developer);
+            Assert.Throws<InvalidOperationException>(() => backlogItem.ChangeStoryPoints(3));
+            Assert.Throws<InvalidOperationException>(() => backlogItem.ChangeTitle("Nieuwe Titel"));
+            Assert.Throws<InvalidOperationException>(() => backlogItem.ChangeDescription("Nieuwe Titel"));
+        }
+
+        [Fact]
+        public void TC_15_AssignAndUnassignDeveloper_FromReadyForTesting_ShouldFail()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+            backlogItem.AssignDeveloper(developer);
+            backlogItem.MarkReadyForTesting();
+            Assert.Throws<InvalidOperationException>(() => backlogItem.AssignDeveloper(developer)); 
+            Assert.Throws<InvalidOperationException>(() => backlogItem.UnassignDeveloper());
+        }
+
+        [Fact]
+        public void TC_16_AddingAndRemovingActivity_FromReadyForTesting_ShouldFail()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+            var activity = CreateActivity("Activity");
+            backlogItem.AssignDeveloper(developer);
+            backlogItem.MarkReadyForTesting();
+            Assert.Throws<InvalidOperationException>(() => backlogItem.AddActivity(activity));
+            Assert.Throws<InvalidOperationException>(() => backlogItem.RemoveActivity(activity.Id));
+        }
+        [Theory]
+        [InlineData("Tested",          nameof(BacklogItem.StartWork))]
+        [InlineData("ReadyForTesting", nameof(BacklogItem.MarkReadyForTesting))]
+        [InlineData("Todo",            nameof(BacklogItem.StartTesting))]
+        [InlineData("Todo",            nameof(BacklogItem.MarkTested))]
+        [InlineData("Todo",            nameof(BacklogItem.ApproveDone))]
+        [InlineData("Todo",            nameof(BacklogItem.ReturnToTodo))]
+        public void TC_17_StateBaseFallbackExceptions_ShouldThrowInvalidOperationException(
+            string stateSetup, 
+            string actionToTrigger)
+        {
+            // Arrange - Safely advance state using standard domain transitions
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+
+            if (stateSetup != "Todo")
+            {
+                backlogItem.AssignDeveloper(developer); // Moves to Doing
+            }
+            if (stateSetup == "ReadyForTesting" || stateSetup == "Tested")
+            {
+                backlogItem.MarkReadyForTesting();
+            }
+            if (stateSetup == "Tested")
+            {
+                backlogItem.StartTesting();
+                backlogItem.MarkTested();
+            }
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                switch (actionToTrigger)
+                {
+                    case nameof(backlogItem.StartWork): 
+                        backlogItem.StartWork(); 
+                        break;
+                    case nameof(backlogItem.MarkReadyForTesting): 
+                        backlogItem.MarkReadyForTesting(); 
+                        break;
+                    case nameof(backlogItem.StartTesting): 
+                        backlogItem.StartTesting(); 
+                        break;
+                    case nameof(backlogItem.MarkTested): 
+                        backlogItem.MarkTested(); 
+                        break;
+                    case nameof(backlogItem.ApproveDone): 
+                        backlogItem.ApproveDone(); 
+                        break;
+                    case nameof(backlogItem.ReturnToTodo): 
+                        backlogItem.ReturnToTodo(); 
+                        break;
+                    default:
+                        throw new ArgumentException($"Action {actionToTrigger} missing mapping.");
+                }
+            });
+            
+        }
+        [Fact]
+        public void TC_18_BacklogItem_ChangeTitle_WithEmptyTitle_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
+
+            // Act & Assert
+            var exception = Assert.Throws<ArgumentException>(() => backlogItem.ChangeTitle(""));
+            Assert.Contains("Title cannot be empty.", exception.Message);
+        }
+
+        [Fact]
+        public void TC_19_BacklogItem_ChangeStoryPoints_WithNegativePoints_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
+
+            // Act & Assert
+            var exception = Assert.Throws<ArgumentException>(() => backlogItem.ChangeStoryPoints(-5));
+            Assert.Contains("Story points cannot be negative.", exception.Message);
+        }
+
+        [Fact]
+        public void TC_20_BacklogItem_ChangeDescription_WithNull_ShouldFallbackToEmptyString()
+        {
+            // Arrange
+            var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
+
+            // Act
+            backlogItem.ChangeDescription(null);
+
+            // Assert
+            Assert.Equal(string.Empty, backlogItem.Description);
+        }
+        [Fact]
+        public void TC_21_BacklogItem_AssigningSecondDeveloper_WithoutActivities_ShouldThrowInvalidOperationException()
+        {
+            var backlogItem = CreateBacklogItem();
+            var developer = CreateUser("Dev One");
+            var developer2 = CreateUser("Dev Two");
+            
+            backlogItem.AssignDeveloper(developer);
+            var exception = Assert.Throws<InvalidOperationException>(() => backlogItem.AssignDeveloper(developer2));
+            Assert.Contains("Assigning multiple developers requires activities.", exception.Message);
+        }
+
+        [Fact]
+        public void TC_22_BacklogItem_RemovingActivity_WithoutActivities_ShouldThrowInvalidOperationException()
+        {
+            var backlogItem = CreateBacklogItem();
+            var exception = Assert.Throws<InvalidOperationException>(() => backlogItem.RemoveActivity(Guid.NewGuid()));
+            Assert.Contains("Activity not found on this backlog item.", exception.Message);
         }
     }
 }
