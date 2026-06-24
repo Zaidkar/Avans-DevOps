@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Avans_DevOps.AvansDevOps.Application.Pipeline;
 using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
 using Xunit;

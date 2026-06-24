@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Models;
 using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
@@ -6,6 +9,7 @@ using Avans_DevOps.AvansDevOps.Domain.Enum;
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 using Moq;
 using System.Security.Cryptography.X509Certificates;
+using Xunit;
 
 namespace AvansDevOps.Tests;
 
