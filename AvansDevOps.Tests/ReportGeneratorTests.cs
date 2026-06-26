@@ -11,7 +11,7 @@ namespace AvansDevOps.Tests;
 public class ReportGeneratorTests
 {
     [Fact]
-    public void Generate_IncludesExpectedSectionsAndMetadata()
+    public void TC_97_FR_20_Generate_IncludesExpectedSectionsAndMetadata()
     {
         var (generator, sprint) = CreateGeneratorWithSprintAndItems();
 
@@ -34,7 +34,7 @@ public class ReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_ComputesBurndownAndEffortValues()
+    public void TC_98_FR_20_Generate_ComputesBurndownAndEffortValues()
     {
         var (generator, sprint) = CreateGeneratorWithSprintAndItems();
 

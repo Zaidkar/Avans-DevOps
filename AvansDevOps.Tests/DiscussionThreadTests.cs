@@ -34,7 +34,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_42_FR_16_CreateDiscussionThread_WithValidData_SendsCreatedNotification()
+        public void TC_77_FR_16_CreateDiscussionThread_WithValidData_SendsCreatedNotification()
         {
             var eventManager = new EventManager();
             var listener = new RecordingEventListener();
@@ -56,7 +56,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_43_FR_16_CreateDiscussionThread_WithInvalidData_IsRejected()
+        public void TC_78_FR_16_CreateDiscussionThread_WithInvalidData_IsRejected()
         {
             var eventManager = new EventManager();
 
@@ -66,7 +66,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_44_FR_16_DiscussionThread_ChangeSubject_UpdatesSubject()
+        public void TC_79_FR_16_DiscussionThread_ChangeSubject_UpdatesSubject()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Old subject", new EventManager());
 
@@ -76,7 +76,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_45_FR_16_DiscussionThread_EmptySubjectChange_IsRejected()
+        public void TC_80_FR_16_DiscussionThread_EmptySubjectChange_IsRejected()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Old subject", new EventManager());
 
@@ -84,7 +84,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_46_FR_17_DiscussionThread_AddPost_AddsPostAndSendsReplyNotification()
+        public void TC_81_FR_17_DiscussionThread_AddPost_AddsPostAndSendsReplyNotification()
         {
             var eventManager = new EventManager();
             var listener = new RecordingEventListener();
@@ -103,7 +103,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_47_FR_17_DiscussionThread_DuplicateOrNullPost_IsRejected()
+        public void TC_82_NFR_04_DiscussionThread_DuplicateOrNullPost_IsRejected()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint planning", new EventManager());
             var post = CreatePost("Developer One", "Looks good.");
@@ -114,7 +114,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_48_FR_17_DiscussionThread_RemovePost_RemovesExistingPost()
+        public void TC_83_FR_17_DiscussionThread_RemovePost_RemovesExistingPost()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint planning", new EventManager());
             var post = CreatePost("Developer One", "Looks good.");
@@ -126,7 +126,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_49_FR_17_DiscussionThread_RemoveMissingPost_IsRejected()
+        public void TC_84_NFR_04_DiscussionThread_RemoveMissingPost_IsRejected()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint planning", new EventManager());
 
@@ -134,7 +134,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_50_FR_16_FR_17_DiscussionThread_Lock_PreventsFurtherChanges()
+        public void TC_85_FR_16_FR_17_DiscussionThread_Lock_PreventsFurtherChanges()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint planning", new EventManager());
             var post = CreatePost("Developer One", "Blocked by dependency.");
@@ -147,7 +147,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_51_FR_17_DiscussionThread_SendNotification_WithoutEventType_IsRejected()
+        public void TC_86_FR_17_DiscussionThread_SendNotification_WithoutEventType_IsRejected()
         {
             var thread = new DiscussionThread(Guid.NewGuid(), Guid.NewGuid(), "Sprint planning", new EventManager());
 

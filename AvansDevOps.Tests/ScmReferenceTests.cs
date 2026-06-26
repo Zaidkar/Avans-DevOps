@@ -42,7 +42,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_18_ScmReference_BacklogItem_AddCommitAndBranch_Succeeds()
+        public void TC_87_FR_18_ScmReference_BacklogItem_AddCommitAndBranch_Succeeds()
         {
             var eventManager = new EventManager();
             var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3, eventManager);
@@ -64,7 +64,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_18_ScmReference_BacklogItem_AddDuplicateReference_IsRejected()
+        public void TC_88_FR_18_ScmReference_BacklogItem_AddDuplicateReference_IsRejected()
         {
             var eventManager = new EventManager();
             var backlogItem = new BacklogItem(Guid.NewGuid(), "BI-1", "Desc", 3, eventManager);
@@ -76,7 +76,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_18_ScmReference_Activity_AddAndRemove_Succeeds()
+        public void TC_89_FR_18_ScmReference_Activity_AddAndRemove_Succeeds()
         {
             var activity = new Activity(Guid.NewGuid(), "ACT-1", "Desc");
             var commit = CreateCommitReference("z9y8x7w");
@@ -89,7 +89,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_26_FR_18_ScmReference_WithValidData_IsCreated()
+        public void TC_90_FR_18_ScmReference_WithValidData_IsCreated()
         {
             var id = Guid.NewGuid();
 
@@ -109,7 +109,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_27_FR_18_ScmReference_InvalidData_IsRejected()
+        public void TC_91_FR_18_ScmReference_InvalidData_IsRejected()
         {
             Assert.Throws<ArgumentException>(
                 () => new ScmReference(Guid.Empty, ScmReferenceType.Commit, "abc123")
@@ -131,7 +131,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_28_FR_18_ScmReference_DescriptionCanBeChanged()
+        public void TC_92_FR_18_ScmReference_DescriptionCanBeChanged()
         {
             var scmReference = CreateScmReference();
 

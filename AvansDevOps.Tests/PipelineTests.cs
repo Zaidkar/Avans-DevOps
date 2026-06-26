@@ -8,7 +8,7 @@ namespace AvansDevOps.Tests
     public class PipelineTests
     {
         [Fact]
-        public void TC_19_PipelineAction_SourceAction_MissingRepository_ReturnsFailure()
+        public void TC_68_FR_12_NFR_02_PipelineAction_SourceAction_MissingRepository_ReturnsFailure()
         {
             var action = new SourceAction(
                 Guid.NewGuid(),
@@ -26,7 +26,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineAction_BuildAction_MissingConfiguration_ReturnsFailure()
+        public void TC_69_FR_12_NFR_02_PipelineAction_BuildAction_MissingConfiguration_ReturnsFailure()
         {
             var action = new BuildAction(
                 Guid.NewGuid(),
@@ -44,7 +44,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineAction_DeployAction_WithRequiredSettings_ReturnsSuccess()
+        public void TC_70_FR_12_NFR_02_PipelineAction_DeployAction_WithRequiredSettings_ReturnsSuccess()
         {
             var action = new DeployAction(
                 Guid.NewGuid(),
@@ -62,7 +62,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineComponent_LeafAddRemove_AreRejected()
+        public void TC_71_FR_12_NFR_02_PipelineComponent_LeafAddRemove_AreRejected()
         {
             var leaf = new BuildAction(
                 Guid.NewGuid(),
@@ -80,7 +80,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineComponent_Stage_StopsOnFirstFailure()
+        public void TC_72_FR_12_NFR_02_PipelineComponent_Stage_StopsOnFirstFailure()
         {
             var stage = new PipelineStage(Guid.NewGuid(), "Build Stage");
 
@@ -113,7 +113,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineComponent_Definition_WithNestedStages_ExecutesSuccessfully()
+        public void TC_73_FR_12_NFR_02_PipelineComponent_Definition_WithNestedStages_ExecutesSuccessfully()
         {
             var pipeline = new PipelineDefinition(Guid.NewGuid(), "CI Pipeline");
             var sourceStage = new PipelineStage(Guid.NewGuid(), "Source");

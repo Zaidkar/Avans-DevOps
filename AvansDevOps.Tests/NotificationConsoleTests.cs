@@ -58,7 +58,7 @@ public class NotificationConsoleTests
     }
 
     [Fact]
-    public void TC_27_FR_07_FR_07_2_ReadyForTesting_EmailConsoleContainsBodyAndRecipient()
+    public void TC_74_FR_13_ReadyForTesting_EmailConsoleContainsBodyAndRecipient()
     {
         var sprint = CreateSprint("Sprint Test");
         var tester = CreateUser("Tester One", "tester.one@avans.dev");
@@ -87,7 +87,7 @@ public class NotificationConsoleTests
     }
 
     [Fact]
-    public void TC_28_FR_07_ReleaseSuccess_EmailConsoleContainsSprintAndRecipient()
+    public void TC_75_FR_12_ReleaseFailure_EmailConsoleContainsSprintAndRecipient()
     {
         var sprint = CreateSprint("Test Sprint");
         var scrumMaster = CreateUser("Scrum Master", "scrummaster@avans.dev");
@@ -113,7 +113,7 @@ public class NotificationConsoleTests
     }
 
     [Fact]
-    public void TC_29_FR_07_2_DiscussionReply_UsesEmailAndSlackChannels()
+    public void TC_76_FR_17_DiscussionReply_UsesEmailAndSlackChannels()
     {
        
         var sprint = CreateSprint("Test Sprint");

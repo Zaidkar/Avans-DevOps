@@ -70,7 +70,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_05_FR_06_FR_07_CreatedSprint_IsMutable()
+        public void TC_35_FR_06_FR_07_CreatedSprint_IsMutable()
         {
             var sprint = CreateReleaseSprint();
             var backlogItem = CreateBacklogItem();
@@ -88,7 +88,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_06_FR_06_FR_07_StartedSprint_IsNotMutable()
+        public void TC_36_FR_06_StartedSprint_IsNotMutable()
         {
             var sprint = CreateReleaseSprint();
             sprint.Start();
@@ -100,7 +100,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_07_FR_08_AddSecondScrumMaster_IsRejected()
+        public void TC_37_FR_08_AddSecondScrumMaster_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 
@@ -112,7 +112,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_07_FR_08_AddDuplicateMember_IsRejected()
+        public void TC_38_FR_08_AddDuplicateMember_IsRejected()
         {
             var sprint = CreateReleaseSprint();
             var userId = Guid.NewGuid();
@@ -142,7 +142,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_13_FR_11_ReviewSprint_CannotCloseWithoutReviewSummary()
+        public void TC_39_FR_11_ReviewSprint_CannotCloseWithoutReviewSummary()
         {
             var sprint = CreateReviewSprint();
             sprint.Start();
@@ -152,7 +152,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_14_FR_11_FR_12_ReleaseSprint_CannotStartReleaseWithoutPipeline()
+        public void TC_40_FR_11_FR_12_ReleaseSprint_CannotStartReleaseWithoutPipeline()
         {
             var sprint = CreateReleaseSprint();
             sprint.Start();
@@ -162,7 +162,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_11_FR_06_SprintConstructor_InvalidData_IsRejected()
+        public void TC_41_FR_06_SprintConstructor_InvalidData_IsRejected()
         {
             var eventManager = new EventManager();
 
@@ -204,7 +204,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_12_FR_07_CreatedSprint_CanRemoveBacklogItem()
+        public void TC_42_FR_07_CreatedSprint_CanRemoveBacklogItem()
         {
             var sprint = CreateReleaseSprint();
             var backlogItem = CreateBacklogItem();
@@ -216,7 +216,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_13_FR_08_CreatedSprint_CanRemoveMember()
+        public void TC_43_FR_08_CreatedSprint_CanRemoveMember()
         {
             var sprint = CreateReleaseSprint();
             var user = CreateUser("Developer One");
@@ -228,7 +228,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_14_FR_08_RemoveMember_InvalidUser_IsRejected()
+        public void TC_44_FR_08_RemoveMember_InvalidUser_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 
@@ -238,7 +238,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_15_FR_11_ReviewSprint_WithReviewSummary_CanBeClosed()
+        public void TC_45_FR_11_ReviewSprint_WithReviewSummary_CanBeClosed()
         {
             var sprint = CreateReviewSprint();
 
@@ -251,7 +251,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_16_FR_11_ReviewSprint_EmptyReviewSummary_IsRejected()
+        public void TC_46_FR_11_ReviewSprint_EmptyReviewSummary_IsRejected()
         {
             var sprint = CreateReviewSprint();
 
@@ -261,7 +261,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_17_FR_12_ReleaseSprint_WithPipeline_CanReleaseSuccessfully()
+        public void TC_47_FR_12_ReleaseSprint_WithPipeline_CanReleaseSuccessfully()
         {
             var sprint = CreateReleaseSprint();
 
@@ -278,7 +278,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_18_FR_12_ReleaseSprint_WithoutPipelineExecutionResult_IsRejected()
+        public void TC_48_FR_12_ReleaseSprint_WithoutPipelineExecutionResult_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 
@@ -286,7 +286,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_FR_12_ReleaseSprint_FailedRelease_CanBeRetried()
+        public void TC_49_FR_12_ReleaseSprint_FailedRelease_CanBeRetried()
         {
             var sprint = CreateReleaseSprint();
 
@@ -302,7 +302,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_20_FR_12_ReleaseSprint_FailedRelease_CanBeCancelled()
+        public void TC_50_FR_12_ReleaseSprint_FailedRelease_CanBeCancelled()
         {
             var sprint = CreateReleaseSprint();
 
@@ -318,7 +318,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_21_FR_11_AssignPipeline_NullPipeline_IsRejected()
+        public void TC_51_FR_11_AssignPipeline_NullPipeline_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 
@@ -326,7 +326,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_22_FR_18_CreatedSprint_CanAddAndRemoveScmReference()
+        public void TC_52_FR_18_CreatedSprint_CanAddAndRemoveScmReference()
         {
             var sprint = CreateReleaseSprint();
             var scmReference = CreateScmReference();
@@ -338,7 +338,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_23_FR_18_DuplicateScmReference_IsRejected()
+        public void TC_53_FR_18_DuplicateScmReference_IsRejected()
         {
             var sprint = CreateReleaseSprint();
             var id = Guid.NewGuid();
@@ -351,7 +351,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_24_FR_18_RemoveUnknownScmReference_IsRejected()
+        public void TC_54_FR_18_RemoveUnknownScmReference_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 
@@ -361,7 +361,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_25_FR_18_AddNullScmReference_IsRejected()
+        public void TC_55_FR_18_AddNullScmReference_IsRejected()
         {
             var sprint = CreateReleaseSprint();
 

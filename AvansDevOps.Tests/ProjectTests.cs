@@ -54,7 +54,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_01_FR_01_CreateProject_WithoutName_ThrowsArgumentException()
+        public void TC_02_FR_01_CreateProject_WithoutName_ThrowsArgumentException()
         {
             var user = CreateUser("Product Owner");
             var owner = CreateMember(user, SprintRole.ProductOwner);
@@ -64,14 +64,14 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_01_FR_01_CreateProject_WithoutProductOwner_ThrowsArgumentNullException()
+        public void TC_03_FR_01_CreateProject_WithoutProductOwner_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new Project("Avans DevOps", "Demo project", null!));
         }
 
         [Fact]
-        public void TC_02_FR_02_ProductBacklog_AddRemoveReorder_WorksCorrectly()
+        public void TC_04_FR_02_ProductBacklog_AddRemoveReorder_WorksCorrectly()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -91,7 +91,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_35_FR_01_ProjectManagement_RenameDescriptionAndProductOwner_UpdateProject()
+        public void TC_05_FR_01_ProjectManagement_RenameDescriptionAndProductOwner_UpdateProject()
         {
             var originalOwner = CreateMember(CreateUser("Original Owner"), SprintRole.ProductOwner);
             var newOwner = CreateMember(CreateUser("New Owner"), SprintRole.ProductOwner);
@@ -107,7 +107,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_36_FR_01_ProjectManagement_InvalidRenameAndOwnerChange_AreRejected()
+        public void TC_06_FR_01_ProjectManagement_InvalidRenameAndOwnerChange_AreRejected()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -119,7 +119,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_37_FR_02_ProductBacklog_DuplicateAndNullItems_AreRejected()
+        public void TC_07_FR_02_ProductBacklog_DuplicateAndNullItems_AreRejected()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -134,7 +134,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_38_FR_02_ProductBacklog_RemoveMissingOrDoneItem_IsRejected()
+        public void TC_08_FR_02_ProductBacklog_RemoveMissingOrDoneItem_IsRejected()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -156,7 +156,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_39_FR_02_ProductBacklog_MoveInvalidItemOrIndex_IsRejected()
+        public void TC_09_FR_02_ProductBacklog_MoveInvalidItemOrIndex_IsRejected()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -172,7 +172,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_40_FR_20_ProjectSprintManagement_AddAndRemoveSprint_WorksCorrectly()
+        public void TC_10_FR_06_ProjectSprintManagement_AddAndRemoveSprint_WorksCorrectly()
         {
             var project = new Project(
                 "Avans DevOps",
@@ -187,7 +187,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_41_FR_20_ProjectSprintManagement_DuplicateMissingOrNullSprint_IsRejected()
+        public void TC_11_FR_06_ProjectSprintManagement_DuplicateMissingOrNullSprint_IsRejected()
         {
             var project = new Project(
                 "Avans DevOps",

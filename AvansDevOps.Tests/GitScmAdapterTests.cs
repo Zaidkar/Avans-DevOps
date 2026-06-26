@@ -8,7 +8,7 @@ namespace AvansDevOps.Tests
     public class GitScmAdapterTests
     {
         [Fact]
-        public void TC_31_FR_19_GitScmAdapter_CreateCommitReference_Succeeds()
+        public void TC_93_FR_19_GitScmAdapter_CreateCommitReference_Succeeds()
         {
             var adapter = new GitScmAdapter();
 
@@ -23,7 +23,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_32_FR_19_GitScmAdapter_CreateBranchReference_Succeeds()
+        public void TC_94_FR_19_GitScmAdapter_CreateBranchReference_Succeeds()
         {
             var adapter = new GitScmAdapter();
 
@@ -37,7 +37,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_33_FR_19_GitScmAdapter_BuildGitCommands_Succeeds()
+        public void TC_95_FR_19_GitScmAdapter_BuildGitCommands_Succeeds()
         {
             var adapter = new GitScmAdapter();
 
@@ -51,7 +51,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_34_FR_19_GitScmAdapter_InvalidInput_IsRejected()
+        public void TC_96_FR_19_GitScmAdapter_InvalidInput_IsRejected()
         {
             var adapter = new GitScmAdapter();
 

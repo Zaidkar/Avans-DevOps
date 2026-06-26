@@ -37,7 +37,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_03_BacklogItemComponent_ChildrenContainAddedActivities()
+        public void TC_18_FR_03_BacklogItemComponent_ChildrenContainAddedActivities()
         {
             var backlogItem = CreateBacklogItem();
             var activity1 = CreateActivity("Activity 1");
@@ -53,7 +53,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_04_Visitor_AllActivitiesDoneVisitor_ReturnsTrue_WhenAllActivitiesAreDone()
+        public void TC_19_FR_05_NFR_02_Visitor_AllActivitiesDoneVisitor_ReturnsTrue_WhenAllActivitiesAreDone()
         {
             var backlogItem = CreateBacklogItem();
             var activity1 = CreateActivity("Activity 1");
@@ -75,7 +75,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_04_Visitor_AllActivitiesDoneVisitor_ReturnsFalse_WhenAtLeastOneActivityIsNotDone()
+        public void TC_20_FR_05_NFR_02_Visitor_AllActivitiesDoneVisitor_ReturnsFalse_WhenAtLeastOneActivityIsNotDone()
         {
             var backlogItem = CreateBacklogItem();
             var doneActivity = CreateActivity("Done activity");
@@ -95,7 +95,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_03_BacklogItemComponent_Accept_VisitsBacklogItemAndAllActivities()
+        public void TC_21_FR_05_NFR_02_BacklogItemComponent_Accept_VisitsBacklogItemAndAllActivities()
         {
             var backlogItem = CreateBacklogItem();
             backlogItem.AddActivity(CreateActivity("Activity 1"));

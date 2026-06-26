@@ -39,7 +39,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_21_NFR_04_NFR_05_ReleaseSprint_HappyPath_CreatedToReleased()
+        public void TC_60_FR_12_ReleaseSprint_HappyPath_CreatedToReleased()
         {
             var sprint = CreateReleaseSprint();
 
@@ -60,7 +60,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_21_NFR_04_NFR_05_ReleaseSprint_AlternativePath_ReleaseFailedRetryThenCancel()
+        public void TC_61_FR_12_ReleaseSprint_AlternativePath_ReleaseFailedRetryThenCancel()
         {
             var sprint = CreateReleaseSprint();
 
@@ -83,7 +83,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_21_NFR_04_NFR_05_ReviewSprint_HappyPath_CreatedToClosed()
+        public void TC_62_FR_11_ReviewSprint_HappyPath_CreatedToClosed()
         {
             var sprint = CreateReviewSprint();
 
@@ -101,7 +101,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_21_NFR_04_NFR_05_ReviewSprint_UnhappyPaths_AreRejected()
+        public void TC_63_FR_11_ReviewSprint_UnhappyPaths_AreRejected()
         {
             var sprint = CreateReviewSprint();
 

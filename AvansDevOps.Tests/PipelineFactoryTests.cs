@@ -9,7 +9,7 @@ namespace AvansDevOps.Tests
     public class PipelineFactoryTests
     {
         [Fact]
-        public void TC_19_PipelineFactory_CreateBuildValidationPipeline_BuildsExpectedStages()
+        public void TC_64_FR_11_FR_12_NFR_02_PipelineFactory_CreateBuildValidationPipeline_BuildsExpectedStages()
         {
             var factory = new PipelineFactory();
 
@@ -38,7 +38,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineFactory_CreateDeploymentPipeline_AddsDeployStage()
+        public void TC_65_FR_11_FR_12_NFR_02_PipelineFactory_CreateDeploymentPipeline_AddsDeployStage()
         {
             var factory = new PipelineFactory();
 
@@ -54,7 +54,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineFactory_CreateBuildValidationPipeline_WithEmptyName_Throws()
+        public void TC_66_FR_11_FR_12_NFR_02_PipelineFactory_CreateBuildValidationPipeline_WithEmptyName_Throws()
         {
             var factory = new PipelineFactory();
 
@@ -63,7 +63,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_PipelineFactory_CreateDeploymentPipeline_ProducesExecutablePipeline()
+        public void TC_67_FR_11_FR_12_NFR_02_PipelineFactory_CreateDeploymentPipeline_ProducesExecutablePipeline()
         {
             var factory = new PipelineFactory();
 

@@ -29,7 +29,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_10_BacklogItem_TestingReturnToTodo_UnassignsDeveloper()
+        public void TC_22_FR_09_FR_14_BacklogItem_TestingReturnToTodo_UnassignsDeveloper()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -46,7 +46,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_11_BacklogItem_ReturnToReadyForTesting_FromTested()
+        public void TC_23_FR_09_FR_15_BacklogItem_ReturnToReadyForTesting_FromTested()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -64,7 +64,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_12_BacklogItem_ReturnToReadyForTesting_FromOtherShouldFail()
+        public void TC_24_FR_09_BacklogItem_ReturnToReadyForTesting_FromOtherShouldFail()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -75,7 +75,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_13_BacklogItem_ChangingInformation_FromToDo()
+        public void TC_25_NFR_04_BacklogItem_ChangingInformation_FromToDo()
         {
             var backlogItem = CreateBacklogItem();
             backlogItem.ChangeDescription("Nieuwe beschrijving");
@@ -87,7 +87,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_14_BacklogItem_ChangingInformation_FromDoingFails()
+        public void TC_26_NFR_04_BacklogItem_ChangingInformation_FromDoingFails()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -98,7 +98,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_15_AssignAndUnassignDeveloper_FromReadyForTesting_ShouldFail()
+        public void TC_27_FR_04_AssignAndUnassignDeveloper_FromReadyForTesting_ShouldFail()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -109,7 +109,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_16_AddingAndRemovingActivity_FromReadyForTesting_ShouldFail()
+        public void TC_28_FR_03_AddingAndRemovingActivity_FromReadyForTesting_ShouldFail()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -126,7 +126,7 @@ namespace AvansDevOps.Tests
         [InlineData("Todo",            nameof(BacklogItem.MarkTested))]
         [InlineData("Todo",            nameof(BacklogItem.ApproveDone))]
         [InlineData("Todo",            nameof(BacklogItem.ReturnToTodo))]
-        public void TC_17_StateBaseFallbackExceptions_ShouldThrowInvalidOperationException(
+        public void TC_29_NFR_04_StateBaseFallbackExceptions_ShouldThrowInvalidOperationException(
             string stateSetup, 
             string actionToTrigger)
         {
@@ -178,7 +178,7 @@ namespace AvansDevOps.Tests
             
         }
         [Fact]
-        public void TC_18_BacklogItem_ChangeTitle_WithEmptyTitle_ShouldThrowArgumentException()
+        public void TC_30_NFR_04_BacklogItem_ChangeTitle_WithEmptyTitle_ShouldThrowArgumentException()
         {
             // Arrange
             var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
@@ -189,7 +189,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_19_BacklogItem_ChangeStoryPoints_WithNegativePoints_ShouldThrowArgumentException()
+        public void TC_31_NFR_04_BacklogItem_ChangeStoryPoints_WithNegativePoints_ShouldThrowArgumentException()
         {
             // Arrange
             var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
@@ -200,7 +200,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_20_BacklogItem_ChangeDescription_WithNull_ShouldFallbackToEmptyString()
+        public void TC_32_NFR_04_BacklogItem_ChangeDescription_WithNull_ShouldFallbackToEmptyString()
         {
             // Arrange
             var backlogItem = CreateBacklogItem(); // Starts in Todo state by default
@@ -212,7 +212,7 @@ namespace AvansDevOps.Tests
             Assert.Equal(string.Empty, backlogItem.Description);
         }
         [Fact]
-        public void TC_21_BacklogItem_AssigningSecondDeveloper_WithoutActivities_ShouldThrowInvalidOperationException()
+        public void TC_33_FR_04_BacklogItem_AssigningSecondDeveloper_WithoutActivities_ShouldThrowInvalidOperationException()
         {
             var backlogItem = CreateBacklogItem();
             var developer = CreateUser("Dev One");
@@ -224,7 +224,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_22_BacklogItem_RemovingActivity_WithoutActivities_ShouldThrowInvalidOperationException()
+        public void TC_34_FR_03_BacklogItem_RemovingActivity_WithoutActivities_ShouldThrowInvalidOperationException()
         {
             var backlogItem = CreateBacklogItem();
             var exception = Assert.Throws<InvalidOperationException>(() => backlogItem.RemoveActivity(Guid.NewGuid()));

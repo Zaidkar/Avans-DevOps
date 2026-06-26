@@ -37,7 +37,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_15_FR_12_WhenPipelineSucceeds_SprintBecomesReleased()
+        public void TC_56_FR_12_WhenPipelineSucceeds_SprintBecomesReleased()
         {
             var sprint = CreateSprintInReleasingState();
 
@@ -47,7 +47,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_16_FR_12_WhenPipelineFails_SprintBecomesReleaseFailed()
+        public void TC_57_FR_12_WhenPipelineFails_SprintBecomesReleaseFailed()
         {
             var sprint = CreateSprintInReleasingState();
 
@@ -57,7 +57,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_16_FR_12_ReleaseFailed_SupportsRetryAndCancel()
+        public void TC_58_FR_12_ReleaseFailed_SupportsRetryAndCancel()
         {
             var sprintForRetry = CreateSprintInReleasingState();
             sprintForRetry.ReleaseFailed();
@@ -75,7 +75,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_16_FR_12_DuringReleasing_SprintCannotBeChanged()
+        public void TC_59_FR_12_DuringReleasing_SprintCannotBeChanged()
         {
             var sprint = CreateSprintInReleasingState();
 

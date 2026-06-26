@@ -29,7 +29,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_03_FR_03_FR_04_AddActivityAndAssignDeveloper_DuplicateActivityIdIsRejected()
+        public void TC_12_FR_03_AddActivityAndAssignDeveloper_DuplicateActivityIdIsRejected()
         {
             var backlogItem = CreateBacklogItem();
             var activityId = Guid.NewGuid();
@@ -44,7 +44,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_03_FR_04_AssignSecondDeveloperWithoutActivities_IsRejected()
+        public void TC_13_FR_04_AssignSecondDeveloperWithoutActivities_IsRejected()
         {
             var backlogItem = CreateBacklogItem();
             var dev1 = CreateUser("Dev One");
@@ -56,7 +56,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_05_FR_05_ApproveDone_FailsWhenNotAllActivitiesDone()
+        public void TC_14_FR_05_NFR_02_ApproveDone_FailsWhenNotAllActivitiesDone()
         {
             var backlogItem = CreateBacklogItem();
             var dev = CreateUser("Dev One");
@@ -72,7 +72,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_08_FR_09_FR_10_StartWork_WithoutDeveloper_IsRejected()
+        public void TC_15_FR_10_StartWork_WithoutDeveloper_IsRejected()
         {
             var backlogItem = CreateBacklogItem();
 
@@ -80,7 +80,7 @@ namespace AvansDevOps.Tests
         }
 
         [Fact]
-        public void TC_09_FR_09_HappyFlow_TodoToDone_Succeeds()
+        public void TC_16_FR_09_FR_10_HappyFlow_TodoToDone_Succeeds()
         {
             var backlogItem = CreateBacklogItem();
             var dev = CreateUser("Dev One");
@@ -104,7 +104,7 @@ namespace AvansDevOps.Tests
         [InlineData("EmptyTitle", "", "Title cannot be empty.", 5)]
         [InlineData("WhitespaceTitle", "   ", "Title cannot be empty.", 5)]
         [InlineData("NegativeStoryPoints", "Valid Title", "Story points cannot be negative.", -1)]
-        public void TC_23_BacklogItemCreation_FailsIfParametersAreInvalid(
+        public void TC_17_NFR_04_BacklogItemCreation_FailsIfParametersAreInvalid(
             string scenario,
             string title,
             string expectedMessage,
