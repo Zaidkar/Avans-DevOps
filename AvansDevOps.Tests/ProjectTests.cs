@@ -18,6 +18,7 @@ namespace AvansDevOps.Tests
                 Email = $"{name.Replace(" ", "").ToLowerInvariant()}@avans.dev"
             };
         }
+
         private static SprintMember CreateMember(User user, SprintRole role) =>
             new(user, role);
 
@@ -25,6 +26,18 @@ namespace AvansDevOps.Tests
         {
             var eventManager = new EventManager();
             return new BacklogItem(Guid.NewGuid(), title, "Description", 3, eventManager);
+        }
+
+        private static Sprint CreateSprint(string name)
+        {
+            var eventManager = new EventManager();
+            return new Sprint(
+                Guid.NewGuid(),
+                name,
+                DateOnly.FromDateTime(DateTime.UtcNow),
+                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)),
+                SprintGoalType.Release,
+                eventManager);
         }
 
         [Fact]
@@ -45,10 +58,9 @@ namespace AvansDevOps.Tests
         {
             var user = CreateUser("Product Owner");
             var owner = CreateMember(user, SprintRole.ProductOwner);
-            
 
             Assert.Throws<ArgumentException>(() =>
-                new Project( "", "Demo project", owner));
+                new Project("", "Demo project", owner));
         }
 
         [Fact]
@@ -76,6 +88,118 @@ namespace AvansDevOps.Tests
 
             Assert.Single(project.ProductBacklog);
             Assert.Equal(itemB.Id, project.ProductBacklog.First().Id);
+        }
+
+        [Fact]
+        public void TC_35_FR_01_ProjectManagement_RenameDescriptionAndProductOwner_UpdateProject()
+        {
+            var originalOwner = CreateMember(CreateUser("Original Owner"), SprintRole.ProductOwner);
+            var newOwner = CreateMember(CreateUser("New Owner"), SprintRole.ProductOwner);
+            var project = new Project("Avans DevOps", "Demo project", originalOwner);
+
+            project.Rename("Avans DevOps 2");
+            project.ChangeDescription(null!);
+            project.ChangeProductOwner(newOwner);
+
+            Assert.Equal("Avans DevOps 2", project.Name);
+            Assert.Equal(string.Empty, project.Description);
+            Assert.Same(newOwner, project.ProductOwner);
+        }
+
+        [Fact]
+        public void TC_36_FR_01_ProjectManagement_InvalidRenameAndOwnerChange_AreRejected()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+
+            Assert.Throws<ArgumentException>(() => project.Rename(" "));
+            Assert.Throws<ArgumentNullException>(() => project.ChangeProductOwner(null!));
+        }
+
+        [Fact]
+        public void TC_37_FR_02_ProductBacklog_DuplicateAndNullItems_AreRejected()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+            var item = CreateBacklogItem("Duplicate backlog item");
+
+            project.AddBacklogItem(item);
+
+            Assert.Throws<ArgumentNullException>(() => project.AddBacklogItem(null!));
+            Assert.Throws<InvalidOperationException>(() => project.AddBacklogItem(item));
+        }
+
+        [Fact]
+        public void TC_38_FR_02_ProductBacklog_RemoveMissingOrDoneItem_IsRejected()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+            var eventManager = new EventManager();
+            var developer = CreateUser("Developer One");
+            var doneItem = new BacklogItem(Guid.NewGuid(), "Done item", "Description", 3, eventManager);
+
+            doneItem.AssignDeveloper(developer);
+            doneItem.MarkReadyForTesting();
+            doneItem.StartTesting();
+            doneItem.MarkTested();
+            doneItem.ApproveDone();
+            project.AddBacklogItem(doneItem);
+
+            Assert.Throws<ArgumentNullException>(() => project.RemoveBacklogItem(Guid.NewGuid()));
+            Assert.Throws<InvalidOperationException>(() => project.RemoveBacklogItem(doneItem.Id));
+        }
+
+        [Fact]
+        public void TC_39_FR_02_ProductBacklog_MoveInvalidItemOrIndex_IsRejected()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+            var item = CreateBacklogItem("Backlog item");
+
+            project.AddBacklogItem(item);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => project.MoveBacklogItem(item.Id, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => project.MoveBacklogItem(item.Id, 1));
+            Assert.Throws<InvalidOperationException>(() => project.MoveBacklogItem(Guid.NewGuid(), 0));
+        }
+
+        [Fact]
+        public void TC_40_FR_20_ProjectSprintManagement_AddAndRemoveSprint_WorksCorrectly()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+            var sprint = CreateSprint("Sprint 1");
+
+            project.AddSprint(sprint);
+            project.RemoveSprint(sprint.Id);
+
+            Assert.Throws<InvalidOperationException>(() => project.RemoveSprint(sprint.Id));
+        }
+
+        [Fact]
+        public void TC_41_FR_20_ProjectSprintManagement_DuplicateMissingOrNullSprint_IsRejected()
+        {
+            var project = new Project(
+                "Avans DevOps",
+                "Demo project",
+                CreateMember(CreateUser("Product Owner"), SprintRole.ProductOwner));
+            var sprint = CreateSprint("Sprint 1");
+
+            project.AddSprint(sprint);
+
+            Assert.Throws<ArgumentNullException>(() => project.AddSprint(null!));
+            Assert.Throws<InvalidOperationException>(() => project.AddSprint(sprint));
+            Assert.Throws<InvalidOperationException>(() => project.RemoveSprint(Guid.NewGuid()));
         }
     }
 }
