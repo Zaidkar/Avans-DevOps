@@ -3,6 +3,7 @@ using Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
+//Een toepassing van het observer pattern
 
 public class DiscussionNotificationListener(
     Sprint sprint,

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+//Een toepassing van het State design Pattern
 namespace Avans_DevOps.AvansDevOps.Domain.States.BacklogItemStates
 {
     public abstract class BacklogItemState

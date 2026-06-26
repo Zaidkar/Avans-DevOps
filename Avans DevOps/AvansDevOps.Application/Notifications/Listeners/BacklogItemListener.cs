@@ -4,6 +4,7 @@ using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
+//Een toepassing van het observer pattern
 
 public class BacklogItemListener(
     Sprint sprint,

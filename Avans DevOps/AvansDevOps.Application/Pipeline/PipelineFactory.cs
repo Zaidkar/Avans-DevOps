@@ -1,5 +1,5 @@
 ﻿using Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline;
-
+// Een toepassing van het Factory pattern 
 namespace Avans_DevOps.AvansDevOps.Application.Pipeline
 {
     public class PipelineFactory : IPipelineFactory

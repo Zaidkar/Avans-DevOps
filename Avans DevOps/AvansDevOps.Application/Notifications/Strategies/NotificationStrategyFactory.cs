@@ -1,7 +1,7 @@
 using Avans_DevOps.AvansDevOps.Infrastructure.Notifications.Clients;
 
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple.Strategies;
-
+//Toepassing van strategy en factory pattern 
 public class NotificationStrategyFactory(
     ExternalMailClient mailClient,
     SlackSdk slackSdk,

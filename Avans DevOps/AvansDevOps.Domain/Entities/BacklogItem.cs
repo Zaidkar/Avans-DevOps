@@ -87,7 +87,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
             return _state is DoneBacklogItemState;
         }
-
+//Toepassing visitor pattern
         public void Accept(IBacklogWorkItemVisitor visitor)
         {
             visitor.VisitBacklogItem(this);

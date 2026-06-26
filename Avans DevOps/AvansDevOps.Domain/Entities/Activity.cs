@@ -94,6 +94,7 @@ namespace Avans_DevOps.AvansDevOps.Domain.Entities
         {
             return Status == ActivityStatus.Done;
         }
+//Toepassing visitor pattern
 
         public void Accept(IBacklogWorkItemVisitor visitor)
         {

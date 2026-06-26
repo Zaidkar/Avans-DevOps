@@ -1,6 +1,6 @@
 using Avans_DevOps.AvansDevOps.Domain.Entities;
 using Avans_DevOps.AvansDevOps.Domain.Interfaces;
-
+//Een toepassing van het Visitor design pattern
 namespace Avans_DevOps.AvansDevOps.Domain.Visitors
 {
     public class AllActivitiesDoneVisitor : IBacklogWorkItemVisitor

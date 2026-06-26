@@ -1,4 +1,5 @@
 namespace Avans_DevOps.AvansDevOps.Application.Notifications.Simple;
+//Een toepassing van het observer pattern
 
 public class EventManager : IEventManager
 {

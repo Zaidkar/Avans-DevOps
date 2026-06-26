@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avans_DevOps.AvansDevOps.Domain.Enum;
-
+//Een toepassing van het State design Pattern
 namespace Avans_DevOps.AvansDevOps.Domain.States.SprintStates
 {
     public abstract class SprintState

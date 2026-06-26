@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+// Een toepassing van het Composite pattern
 namespace Avans_DevOps.AvansDevOps.Domain.Entities.Pipeline
 {
     public class PipelineDefinition : PipelineComponent
